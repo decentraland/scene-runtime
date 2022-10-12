@@ -1,0 +1,33 @@
+{
+  "name": "@dcl/scene-runtime",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/decentraland/scene-runtime.git"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/decentraland/scene-runtime/issues"
+  },
+  "homepage": "https://github.com/decentraland/scene-runtime#readme",
+  "dependencies": {
+    "@dcl/ecs-math": "^1.0.1",
+    "@dcl/posix": "^1.0.4",
+    "@dcl/protocol": "^1.0.0-3238274199.commit-12a8e73",
+    "@dcl/rpc": "^1.0.3",
+    "@dcl/schemas": "^5.21.0",
+    "@types/jest": "^29.1.2",
+    "devtools-protocol": "^0.0.1057312",
+    "estrella": "^1.4.1",
+    "jest": "^29.1.2",
+    "p-queue": "^7.3.0",
+    "ts-jest": "^29.0.3",
+    "typescript": "^4.8.4"
+  }
+}
