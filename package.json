@@ -20,8 +20,8 @@
     "@dcl/ecs-math": "^1.0.1",
     "@dcl/posix": "^1.0.4",
     "@dcl/protocol": "^1.0.0-3238274199.commit-12a8e73",
-    "@dcl/rpc": "^1.0.3",
-    "@dcl/schemas": "^5.21.0",
+    "@dcl/rpc": "^1.0.4-20221013135015.commit-3725aeb",
+    "@dcl/schemas": "^5.21.1",
     "@types/jest": "^29.1.2",
     "devtools-protocol": "^0.0.1057312",
     "estrella": "^1.4.1",
@@ -29,5 +29,6 @@
     "p-queue": "^7.3.0",
     "ts-jest": "^29.0.3",
     "typescript": "^4.8.4"
-  }
+  },
+  "files": ["dist"]
 }

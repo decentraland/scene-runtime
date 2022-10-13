@@ -1,4 +1,4 @@
-import PQueue from 'p-queue'
+import PQueue from "p-queue"
 
 const TIMEOUT_LIMIT = 29000
 
@@ -18,7 +18,7 @@ export function createFetch({ canUseFetch, previewMode, log, originalFetch }: Fe
   const fifoFetch = new PQueue({ concurrency: 1 })
   return async (resource: RequestInfo, init?: (RequestInit & Partial<Opts>) | undefined): Promise<Response> => {
     const url = resource instanceof Request ? resource.url : resource
-    if (url.toLowerCase().substr(0, 8) !== 'https://') {
+    if (url.toLowerCase().substr(0, 8) !== "https://") {
       if (previewMode) {
         log(
           "⚠️ Warning: Can't make an unsafe http request in deployed scenes, please consider upgrading to https. url=" +
@@ -30,13 +30,13 @@ export function createFetch({ canUseFetch, previewMode, log, originalFetch }: Fe
     }
 
     if (!canUseFetch) {
-      return Promise.reject(new Error('This scene is not allowed to use fetch.'))
+      return Promise.reject(new Error("This scene is not allowed to use fetch."))
     }
 
     async function fetchRequest() {
       const abortController = new AbortController()
       const timeout = setTimeout(() => {
-        abortController.abort()
+        ;(abortController as any).abort()
       }, Math.max(init?.timeout || TIMEOUT_LIMIT, 1))
       try {
         // DO NOT remove the "await" from the next line

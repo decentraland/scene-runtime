@@ -9,7 +9,7 @@ import { setupFpsThrottling } from "./runtime/SetupFpsThrottling"
 
 import { DevToolsAdapter } from "./runtime/DevToolsAdapter"
 import { RuntimeEventCallback, RuntimeEvent, SceneRuntimeEventState, EventDataToRuntimeEvent } from "./runtime/Events"
-import { Scene } from "@dcl/schemas"
+import type { Scene } from "@dcl/schemas/dist/platform/scene/index"
 
 /**
  * Converts a string position "-1,5" => { x: -1, y: 5 }

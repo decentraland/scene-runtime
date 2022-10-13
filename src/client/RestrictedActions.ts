@@ -5,14 +5,14 @@ import { RestrictedActionsServiceDefinition } from '@dcl/protocol/out-ts/decentr
 export type PositionType = { x: number; y: number; z: number }
 
 export namespace RestrictedActionsServiceClient {
-  export function create<Context>(clientPort: RpcClientPort) {
+  export function create<Context extends {}>(clientPort: RpcClientPort) {
     return codegen.loadService<Context, RestrictedActionsServiceDefinition>(
       clientPort,
       RestrictedActionsServiceDefinition
     )
   }
 
-  export function createLegacy<Context>(clientPort: RpcClientPort) {
+  export function createLegacy<Context extends {}>(clientPort: RpcClientPort) {
     const originalService = codegen.loadService<Context, RestrictedActionsServiceDefinition>(
       clientPort,
       RestrictedActionsServiceDefinition

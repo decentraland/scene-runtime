@@ -4,23 +4,28 @@ const path = require('path')
 
 const commonOptions = {
   bundle: true,
-  minify: !cliopts.watch,
-  sourcemap: cliopts.watch ? 'both' : undefined,
-  sourcesContent: !!cliopts.watch,
   treeShaking: true,
-  plugins: []
+  inject: ['src/web-worker-inject.js']
 }
 
-function createWorker(entry, outfile) {
-  return build({
-    ...commonOptions,
-    entry,
-    outfile,
-    tsconfig: 'tsconfig.json',
-  })
-}
+build({
+  ...commonOptions,
+  minify: false,
+  debug: true,
+  sourcemap: 'inline',
+  sourcesContent: true,
+  entry: 'src/index-webworker.ts',
+  outfile: 'dist/webworker.dev.js',
+  tsconfig: 'tsconfig.json'
+})
 
-createWorker('src/index-webworker.ts', 'dist/webworker.js')
+build({
+  ...commonOptions,
+  minify: true,
+  entry: 'src/index-webworker.ts',
+  outfile: 'dist/webworker.js',
+  tsconfig: 'tsconfig.json',
+})
 
 // Run a local web server with livereload when -watch is set
-cliopts.watch && require('./scripts/runTestServer')
+cliopts.watch

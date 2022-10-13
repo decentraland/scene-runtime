@@ -4,11 +4,11 @@ import { PlayersServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kern
 import { UserData } from './UserIdentity'
 
 export namespace PlayersServiceClient {
-  export function create<Context>(clientPort: RpcClientPort) {
+  export function create<Context extends {}>(clientPort: RpcClientPort) {
     return codegen.loadService<Context, PlayersServiceDefinition>(clientPort, PlayersServiceDefinition)
   }
 
-  export function createLegacy<Context>(clientPort: RpcClientPort) {
+  export function createLegacy<Context extends {}>(clientPort: RpcClientPort) {
     const originalService = codegen.loadService<Context, PlayersServiceDefinition>(clientPort, PlayersServiceDefinition)
 
     return {

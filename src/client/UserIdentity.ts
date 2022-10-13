@@ -1,6 +1,6 @@
 import * as codegen from '@dcl/rpc/dist/codegen'
 import { RpcClientPort } from '@dcl/rpc/dist/types'
-import { Snapshots } from '@dcl/schemas'
+import type { Snapshots } from '@dcl/schemas/dist/platform/profile/avatar'
 import { UserIdentityServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/user_identity.gen'
 
 /** THIS TYPE IS APPEND ONLY BECAUSE IT IS USED FOR THE SDK APIs */
@@ -27,11 +27,11 @@ export type AvatarForUserData = {
 }
 
 export namespace UserIdentityServiceClient {
-  export function create<Context>(clientPort: RpcClientPort) {
+  export function create<Context extends {}>(clientPort: RpcClientPort) {
     return codegen.loadService<Context, UserIdentityServiceDefinition>(clientPort, UserIdentityServiceDefinition)
   }
 
-  export function createLegacy<Context>(clientPort: RpcClientPort) {
+  export function createLegacy<Context extends {}>(clientPort: RpcClientPort) {
     const originalService = codegen.loadService<Context, UserIdentityServiceDefinition>(
       clientPort,
       UserIdentityServiceDefinition
