@@ -4,7 +4,7 @@ import { RpcClientPort } from '@dcl/rpc/dist/types'
 import { RuntimeEventCallback } from './Events'
 import {
   EAType,
-  EngineAPIServiceDefinition,
+  EngineApiServiceDefinition,
   EntityAction,
   queryTypeFromJSON
 } from '@dcl/protocol/out-ts/decentraland/kernel/apis/engine_api.gen'
@@ -21,7 +21,7 @@ export interface DecentralandInterfaceOptions {
   batchEvents: { events: EntityAction[] }
   onStartFunctions: (() => void)[]
   onUpdateFunctions: ((dt: number) => void)[]
-  EngineAPI: RpcClientModule<EngineAPIServiceDefinition>
+  EngineAPI: RpcClientModule<EngineApiServiceDefinition>
 }
 
 type GenericRpcModule = Record<string, (...args: any) => Promise<unknown>>

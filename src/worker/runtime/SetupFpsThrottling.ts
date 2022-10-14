@@ -1,4 +1,4 @@
-import { Vector2 } from "@dcl/ecs-math/dist/Vector2";
+import { Vector2 } from "@dcl/ecs-math";
 
 export function setupFpsThrottling(
   dcl: DecentralandInterface,

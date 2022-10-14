@@ -1,5 +1,4 @@
-import { Vector3 } from '@dcl/ecs-math/dist/Vector3'
-import { Quaternion } from '@dcl/ecs-math/dist/Quaternion'
+import { Vector3, Quaternion } from '@dcl/ecs-math'
 import { EAType } from '@dcl/protocol/out-ts/decentraland/kernel/apis/engine_api.gen'
 import { PBTransform } from '@dcl/protocol/out-ts/decentraland/renderer/engine_interface.gen'
 

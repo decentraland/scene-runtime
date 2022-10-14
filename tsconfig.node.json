@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "target": "es2020",
+    "moduleResolution": "node",
+    "types": ["@dcl/posix", "node"]
+  },
+  "extends": "./tsconfig.json"
+}

@@ -2,7 +2,7 @@ import * as codegen from '@dcl/rpc/dist/codegen'
 import { RpcClientPort } from '@dcl/rpc/dist/types'
 import type { Scene } from '@dcl/schemas/dist/platform/scene/index'
 import type { ContentMapping } from '@dcl/schemas/dist/misc/content-mapping'
-import { EnvironmentAPIServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/environment_api.gen'
+import { EnvironmentApiServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/environment_api.gen'
 
 export type Realm = {
   domain: string
@@ -35,13 +35,13 @@ export type BootstrapData = {
 
 export namespace EnvironmentAPIServiceClient {
   export function create<Context extends {}>(clientPort: RpcClientPort) {
-    return codegen.loadService<Context, EnvironmentAPIServiceDefinition>(clientPort, EnvironmentAPIServiceDefinition)
+    return codegen.loadService<Context, EnvironmentApiServiceDefinition>(clientPort, EnvironmentApiServiceDefinition)
   }
 
   export function createLegacy<Context extends {}>(clientPort: RpcClientPort) {
-    const originalService = codegen.loadService<Context, EnvironmentAPIServiceDefinition>(
+    const originalService = codegen.loadService<Context, EnvironmentApiServiceDefinition>(
       clientPort,
-      EnvironmentAPIServiceDefinition
+      EnvironmentApiServiceDefinition
     )
     return {
       ...originalService,
