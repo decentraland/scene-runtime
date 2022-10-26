@@ -37,7 +37,7 @@ export class DevToolsAdapter {
     }
 
     this.devTools!.event({
-      type: 'Runtime.consoleApiCalled',
+      type: 'Runtime.consoleAPICalled',
       jsonPayload: JSON.stringify([params])
     }).catch(this.catchHandler)
   }
