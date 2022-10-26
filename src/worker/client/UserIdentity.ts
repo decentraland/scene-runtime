@@ -3,7 +3,7 @@ import { RpcClientPort } from '@dcl/rpc/dist/types'
 import type { Snapshots } from '@dcl/schemas/dist/platform/profile/avatar'
 import { UserIdentityServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/user_identity.gen'
 
-/** THIS TYPE IS APPEND ONLY BECAUSE IT IS USED FOR THE SDK APIs */
+/** THIS TYPE IS APPEND ONLY BECAUSE IT IS USED FOR THE SDK Apis */
 export type UserData = {
   displayName: string
   publicKey: string | null

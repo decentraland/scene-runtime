@@ -1,4 +1,4 @@
-import { LoadableAPIs } from '../client'
+import { LoadableApis } from '../client'
 import { componentNameRE, generatePBObject, getIdAsNumber } from '../Utils'
 import { RpcClientPort } from '@dcl/rpc/dist/types'
 import { RuntimeEventCallback } from './Events'
@@ -21,7 +21,7 @@ export interface DecentralandInterfaceOptions {
   batchEvents: { events: EntityAction[] }
   onStartFunctions: (() => void)[]
   onUpdateFunctions: ((dt: number) => void)[]
-  EngineAPI: RpcClientModule<EngineApiServiceDefinition>
+  EngineApi: RpcClientModule<EngineApiServiceDefinition>
 }
 
 type GenericRpcModule = Record<string, (...args: any) => Promise<unknown>>
@@ -205,12 +205,12 @@ export function createDecentralandInterface(options: DecentralandInterfaceOption
 
     /** subscribe to specific events, events will be handled by the onEvent function */
     subscribe(eventName: string): void {
-      options.EngineAPI.subscribe({ eventId: eventName }).catch((err: Error) => onError(err))
+      options.EngineApi.subscribe({ eventId: eventName }).catch((err: Error) => onError(err))
     },
 
     /** unsubscribe to specific event */
     unsubscribe(eventName: string): void {
-      options.EngineAPI.unsubscribe({ eventId: eventName }).catch((err: Error) => onError(err))
+      options.EngineApi.unsubscribe({ eventId: eventName }).catch((err: Error) => onError(err))
     },
 
     componentCreated(id: string, componentName: string, classId: number) {
@@ -289,8 +289,8 @@ function loadSceneModule(clientPort: RpcClientPort, moduleName: string): Generic
   //    (a single object as @param, and a single object as @returns)
   const moduleToLoad = moduleName.replace(/^@decentraland\//, 'Legacy').replace(/^~system\//, '')
   try {
-    if (moduleToLoad in LoadableAPIs) {
-      return (LoadableAPIs as any)[moduleToLoad](clientPort)
+    if (moduleToLoad in LoadableApis) {
+      return (LoadableApis as any)[moduleToLoad](clientPort)
     } else {
       throw new Error('The module is not available in the list!')
     }

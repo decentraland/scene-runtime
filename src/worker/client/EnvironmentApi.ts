@@ -33,7 +33,7 @@ export type BootstrapData = {
   data: Scene
 }
 
-export namespace EnvironmentAPIServiceClient {
+export namespace EnvironmentApiServiceClient {
   export function create<Context extends {}>(clientPort: RpcClientPort) {
     return codegen.loadService<Context, EnvironmentApiServiceDefinition>(clientPort, EnvironmentApiServiceDefinition)
   }
