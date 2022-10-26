@@ -4,7 +4,7 @@ import { LoadedModules } from '../client'
 export class DevToolsAdapter {
   exceptions: Error[] = []
 
-  constructor(public devTools: LoadedModules['DevTools']) {}
+  constructor(public devTools: LoadedModules['DevTools']) { }
 
   log(...args: any[]) {
     const params: Protocol.Runtime.ConsoleAPICalledEvent = {
@@ -37,7 +37,7 @@ export class DevToolsAdapter {
     }
 
     this.devTools!.event({
-      type: 'Runtime.consoleAPICalled',
+      type: 'Runtime.consoleApiCalled',
       jsonPayload: JSON.stringify([params])
     }).catch(this.catchHandler)
   }
