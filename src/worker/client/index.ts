@@ -3,7 +3,6 @@ import { createDevToolsServiceClient } from './DevTools'
 import { createEngineApiServiceClient } from './EngineApi'
 import { EnvironmentApiServiceClient } from './EnvironmentApi'
 import { EthereumControllerServiceClient } from './EthereumController'
-import { createExperimentalApiServiceClient } from './ExperimentalApi'
 import { ParcelIdentityServiceClient } from './ParcelIdentity'
 import { createPermissionsServiceClient } from './Permissions'
 import { PlayersServiceClient } from './Players'
@@ -18,7 +17,6 @@ import { createLegacyWeb3Provider } from './Web3Provider'
 export const LoadableApis = {
   DevTools: createDevToolsServiceClient,
   EngineApi: createEngineApiServiceClient,
-  ExperimentalApi: createExperimentalApiServiceClient,
   Permissions: createPermissionsServiceClient,
 
   SignedFetch: SignedFetchServiceClient.create,
