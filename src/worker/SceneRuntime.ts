@@ -10,6 +10,7 @@ import { setupFpsThrottling } from "./runtime/SetupFpsThrottling"
 import { DevToolsAdapter } from "./runtime/DevToolsAdapter"
 import { RuntimeEventCallback, RuntimeEvent, SceneRuntimeEventState, EventDataToRuntimeEvent } from "./runtime/Events"
 import type { Scene } from "@dcl/schemas/dist/platform/scene/index"
+import { createRuntime } from "./sdk7-runtime"
 
 /**
  * Converts a string position "-1,5" => { x: -1, y: 5 }
@@ -153,36 +154,38 @@ export async function startSceneRuntime(client: RpcClient) {
     sendBatchAndProcessEvents().catch(devToolsAdapter.error).finally(reschedule)
   }
 
+  const dcl = createDecentralandInterface({
+    clientPort,
+    onError: (err: Error) => devToolsAdapter.error(err),
+    onLog: (...args: any) => devToolsAdapter.log(...args),
+    sceneId: bootstrapData.id,
+    eventState,
+    batchEvents,
+    EngineApi,
+    onEventFunctions,
+    onStartFunctions,
+    onUpdateFunctions,
+  })
+
+  // create the context for the scene
+  const runtimeExecutionContext = prepareSandboxContext({
+    dcl,
+    canUseFetch,
+    canUseWebsocket,
+    log: dcl.log,
+    previewMode: isPreview.isPreview || unsafeAllowed.status,
+  })
+
+  if (bootstrapData.useFPSThrottling === true) {
+    setupFpsThrottling(dcl, fullData.scene.parcels.map(parseParcelPosition), (newValue) => {
+      updateIntervalMs = newValue
+    })
+  }
+
+  const sceneModule = createRuntime(runtimeExecutionContext, clientPort)
+
   try {
     const sourceCode = await codeRequest.text()
-
-    const dcl = createDecentralandInterface({
-      clientPort,
-      onError: (err: Error) => devToolsAdapter.error(err),
-      onLog: (...args: any) => devToolsAdapter.log(...args),
-      sceneId: bootstrapData.id,
-      eventState,
-      batchEvents,
-      EngineApi,
-      onEventFunctions,
-      onStartFunctions,
-      onUpdateFunctions,
-    })
-
-    // create the context for the scene
-    const runtimeExecutionContext = prepareSandboxContext({
-      dcl,
-      canUseFetch,
-      canUseWebsocket,
-      log: dcl.log,
-      previewMode: isPreview.isPreview || unsafeAllowed.status,
-    })
-
-    if (bootstrapData.useFPSThrottling === true) {
-      setupFpsThrottling(dcl, fullData.scene.parcels.map(parseParcelPosition), (newValue) => {
-        updateIntervalMs = newValue
-      })
-    }
 
     // run the code of the scene
     await customEval(sourceCode, runtimeExecutionContext)
@@ -204,6 +207,14 @@ export async function startSceneRuntime(client: RpcClient) {
   do {
     await sendBatchAndProcessEvents()
   } while (!didStart && (await sleep(100)))
+
+  if (sceneModule.exports.onStart) {
+    await sceneModule.exports.onStart()
+  }
+
+  if (sceneModule.exports.onUpdate) {
+    onUpdateFunctions.push(sceneModule.exports.onUpdate)
+  }
 
   // finally, start event loop
   mainLoop()

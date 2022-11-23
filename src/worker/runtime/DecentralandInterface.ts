@@ -24,7 +24,7 @@ export interface DecentralandInterfaceOptions {
   EngineApi: RpcClientModule<EngineApiServiceDefinition>
 }
 
-type GenericRpcModule = Record<string, (...args: any) => Promise<unknown>>
+export type GenericRpcModule = Record<string, (...args: any) => Promise<unknown>>
 type ComposedRpcModule = ModuleDescriptor & { __INTERNAL_UNSAFE_loadedModule: GenericRpcModule }
 
 export function createDecentralandInterface(options: DecentralandInterfaceOptions) {
@@ -283,7 +283,7 @@ export function createDecentralandInterface(options: DecentralandInterfaceOption
   return dcl
 }
 
-function loadSceneModule(clientPort: RpcClientPort, moduleName: string): GenericRpcModule {
+export function loadSceneModule(clientPort: RpcClientPort, moduleName: string): GenericRpcModule {
   // - moduleNames that start with @decentraland are from ECS6 and they should load the legacy ones.
   // - moduleNames that start with ~system, are the new ones that follow the protocol buffer generation
   //    (a single object as @param, and a single object as @returns)
