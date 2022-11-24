@@ -60,6 +60,9 @@ export async function startSceneRuntime(client: RpcClient) {
     throw new Error(`No boostrap data`)
   }
 
+  // TODO: https://github.com/decentraland/sdk/issues/471
+  const IS_SDK7 = "ecs7" in fullData || false
+
   const mappingName = fullData.main
   const mapping = bootstrapData.entity?.content.find(($) => $.file === mappingName)
 
@@ -153,7 +156,7 @@ export async function startSceneRuntime(client: RpcClient) {
       }
 
       try {
-        await sendBatchAndProcessEvents()
+        if (!IS_SDK7) await sendBatchAndProcessEvents()
       } catch (error: any) {
         devToolsAdapter.error(error)
       }
@@ -177,7 +180,7 @@ export async function startSceneRuntime(client: RpcClient) {
 
   // create the context for the scene
   const runtimeExecutionContext = prepareSandboxContext({
-    dcl,
+    dcl: IS_SDK7 ? undefined : dcl,
     canUseFetch,
     canUseWebsocket,
     log: dcl.log,
@@ -190,7 +193,8 @@ export async function startSceneRuntime(client: RpcClient) {
     })
   }
 
-  const sceneModule = createRuntime(runtimeExecutionContext, clientPort)
+  // TODO: move SDK7 runtime to its own worker
+  const sceneModule = IS_SDK7 ? createRuntime(runtimeExecutionContext, clientPort) : undefined
 
   try {
     const sourceCode = await codeRequest.text()
@@ -211,11 +215,11 @@ export async function startSceneRuntime(client: RpcClient) {
   // then notify the kernel that the initial scene was loaded
   batchEvents.events.push(initMessagesFinished())
 
-  if (sceneModule.exports.onSceneLoaded) {
+  if (sceneModule?.exports.onSceneLoaded) {
     onStartFunctions.push(sceneModule.exports.onSceneLoaded)
   }
 
-  if (sceneModule.exports.onUpdate) {
+  if (sceneModule?.exports.onUpdate) {
     onUpdateFunctions.push(sceneModule.exports.onUpdate)
   }
 

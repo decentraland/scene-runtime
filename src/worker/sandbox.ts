@@ -67,7 +67,7 @@ function getES5Context(base: Record<string, any>) {
 }
 
 export function prepareSandboxContext(options: {
-  dcl: DecentralandInterface
+  dcl: DecentralandInterface | undefined
   canUseWebsocket: boolean
   canUseFetch: boolean
   previewMode: boolean
