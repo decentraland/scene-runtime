@@ -22,6 +22,13 @@ export function createRuntime(runtime: Record<string, any>, clientPort: RpcClien
     },
   })
 
+  Object.defineProperty(runtime, "exports", {
+    configurable: false,
+    get() {
+      return module
+    },
+  })
+
   const loadedModules: Record<string, GenericRpcModule> = {}
 
   Object.defineProperty(runtime, "require", {
