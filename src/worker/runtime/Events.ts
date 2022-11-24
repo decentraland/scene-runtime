@@ -1,7 +1,7 @@
 import { EventData, EventDataType } from '@dcl/protocol/out-ts/decentraland/kernel/apis/engine_api.gen'
 
 export type RuntimeEvent = { type: string; data: any }
-export type RuntimeEventCallback = (event: RuntimeEvent) => void
+export type RuntimeEventCallback = (event: RuntimeEvent) => Promise<void> | void
 
 export type SceneRuntimeEventState = { allowOpenExternalUrl: boolean }
 

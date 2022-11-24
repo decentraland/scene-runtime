@@ -3,7 +3,7 @@ import { GenericRpcModule, loadSceneModule } from "./runtime/DecentralandInterfa
 
 export type SceneInterface = {
   onUpdate(dt: number): Promise<void>
-  onStart(): Promise<void>
+  onSceneLoaded(): Promise<void>
 }
 
 export type SDK7Module = {

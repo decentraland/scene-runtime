@@ -1,36 +1,34 @@
-import { Vector2 } from "@dcl/ecs-math";
-
 export function setupFpsThrottling(
   dcl: DecentralandInterface,
   parcels: Array<{ x: number; y: number }>,
   onChangeUpdateInterval: (newValue: number) => void
 ) {
-  dcl.subscribe('positionChanged')
+  dcl.subscribe("positionChanged")
   dcl.onEvent((event) => {
-    if (event.type !== 'positionChanged') {
+    if (event.type !== "positionChanged") {
       return
     }
 
-    const e = event.data as IEvents['positionChanged']
+    const e = event.data as IEvents["positionChanged"]
 
     //NOTE: calling worldToGrid from parcelScenePositions.ts here crashes kernel when there are 80+ workers since chrome 92.
     const PARCEL_SIZE = 16
-    const playerPosition = new Vector2(
-      Math.floor(e.cameraPosition.x / PARCEL_SIZE),
-      Math.floor(e.cameraPosition.z / PARCEL_SIZE)
-    )
+    const playerPosition = {
+      x: Math.floor(e.cameraPosition.x / PARCEL_SIZE),
+      y: Math.floor(e.cameraPosition.z / PARCEL_SIZE),
+    }
 
     if (playerPosition === undefined) {
       return
     }
 
-    const playerPos = playerPosition as Vector2
+    const playerPos = playerPosition
 
     let sqrDistanceToPlayerInParcels = 10 * 10
     let isInsideScene = false
 
     for (const parcel of parcels) {
-      sqrDistanceToPlayerInParcels = Math.min(sqrDistanceToPlayerInParcels, Vector2.DistanceSquared(playerPos, parcel))
+      sqrDistanceToPlayerInParcels = Math.min(sqrDistanceToPlayerInParcels, distanceSquared(playerPos, parcel))
       if (parcel.x === playerPos.x && parcel.y === playerPos.y) {
         isInsideScene = true
       }
@@ -52,4 +50,11 @@ export function setupFpsThrottling(
 
     onChangeUpdateInterval(1000 / fps)
   })
+}
+
+function distanceSquared(a: Record<"x" | "y", number>, b: Record<"x" | "y", number>) {
+  const x = a.x - b.x
+  const y = a.y - b.y
+
+  return x * x + y * y
 }

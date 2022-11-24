@@ -1,18 +1,20 @@
-import { Vector3, Quaternion } from '@dcl/ecs-math'
-import { EAType } from '@dcl/protocol/out-ts/decentraland/kernel/apis/engine_api.gen'
-import { PBTransform } from '@dcl/protocol/out-ts/decentraland/renderer/engine_interface.gen'
+import { EAType } from "@dcl/protocol/out-ts/decentraland/kernel/apis/engine_api.gen"
+import { PBTransform } from "@dcl/protocol/out-ts/decentraland/renderer/engine_interface.gen"
+
+type Vector3 = Record<"x" | "y" | "z", number>
+type Quaternion = Record<"x" | "y" | "z" | "w", number>
 
 type Transform = {
-  position: Vector3;
-  rotation: Quaternion;
-  scale: Vector3;
+  position: Vector3
+  rotation: Quaternion
+  scale: Vector3
 }
 
 const VECTOR3_MEMBER_CAP = 1000000 // Value measured when genesis plaza glitch triggered a physics engine breakdown
 const pbTransform: Transform = {
-  position: Vector3.Zero(),
-  rotation: Quaternion.Identity,
-  scale: Vector3.One()
+  position: { x: 0, y: 0, z: 0 },
+  rotation: { x: 0, y: 0, z: 0, w: 1 },
+  scale: { x: 1, y: 1, z: 1 },
 } as const
 
 const TRANSFORM_CLASS_ID = 1
@@ -21,7 +23,7 @@ const transformData: ArrayBuffer = new ArrayBuffer(40)
 const transformView: DataView = new DataView(transformData)
 
 export const componentSerializeOpt = {
-  useBinaryTransform: true
+  useBinaryTransform: true,
 }
 
 export function generatePBObject(classId: number, json: string): string {
@@ -37,18 +39,21 @@ export function generatePBObject(classId: number, json: string): string {
 function serializeTransform(transform: Transform): string {
   // Position
   // If we don't cap these vectors, scenes may trigger a physics breakdown when messaging enormous values
-  pbTransform.position.set(
-    Math.fround(transform.position.x),
-    Math.fround(transform.position.y),
-    Math.fround(transform.position.z)
-  )
+  pbTransform.position.x = Math.fround(transform.position.x)
+  pbTransform.position.y = Math.fround(transform.position.y)
+  pbTransform.position.z = Math.fround(transform.position.z)
   capVector(pbTransform.position, VECTOR3_MEMBER_CAP)
 
   // Rotation
-   pbTransform.rotation.copyFrom(transform.rotation)
+  pbTransform.rotation.x = transform.rotation.x
+  pbTransform.rotation.y = transform.rotation.y
+  pbTransform.rotation.z = transform.rotation.z
+  pbTransform.rotation.w = transform.rotation.w
 
   // Scale
-  pbTransform.scale.set(Math.fround(transform.scale.x), Math.fround(transform.scale.y), Math.fround(transform.scale.z))
+  pbTransform.scale.x = Math.fround(transform.scale.x)
+  pbTransform.scale.y = Math.fround(transform.scale.y)
+  pbTransform.scale.z = Math.fround(transform.scale.z)
   capVector(pbTransform.scale, VECTOR3_MEMBER_CAP)
 
   const arrayBuffer: Uint8Array = PBTransform.encode(pbTransform).finish()
@@ -58,11 +63,11 @@ function serializeTransform(transform: Transform): string {
 function serializeTransformNoProtobuff(transform: Transform): string {
   // Position
   // If we don't cap these vectors, scenes may trigger a physics breakdown when messaging enormous values
-  const cappedVector = new Vector3(
-    Math.fround(transform.position.x),
-    Math.fround(transform.position.y),
-    Math.fround(transform.position.z)
-  )
+  const cappedVector = {
+    x: Math.fround(transform.position.x),
+    y: Math.fround(transform.position.y),
+    z: Math.fround(transform.position.z),
+  }
   capVector(cappedVector, VECTOR3_MEMBER_CAP)
 
   let offset: number = 0
@@ -77,7 +82,10 @@ function serializeTransformNoProtobuff(transform: Transform): string {
   transformView.setFloat32((offset += 4), transform.rotation.w, true)
 
   // Scale
-  cappedVector.set(Math.fround(transform.scale.x), Math.fround(transform.scale.y), Math.fround(transform.scale.z))
+  cappedVector.x = Math.fround(transform.scale.x)
+  cappedVector.y = Math.fround(transform.scale.y)
+  cappedVector.z = Math.fround(transform.scale.z)
+
   capVector(cappedVector, VECTOR3_MEMBER_CAP)
   transformView.setFloat32((offset += 4), cappedVector.x, true)
   transformView.setFloat32((offset += 4), cappedVector.y, true)
@@ -122,7 +130,7 @@ export function resolveMapping(mapping: string | undefined, mappingName: string,
     return url
   }
 
-  return (baseUrl.endsWith('/') ? baseUrl : baseUrl + '/') + url
+  return (baseUrl.endsWith("/") ? baseUrl : baseUrl + "/") + url
 }
 
 // NOTE(Brian): The idea is to map all string ids used by this scene to ints
@@ -150,7 +158,7 @@ export function getIdAsNumber(id: string): number {
 export function initMessagesFinished() {
   return {
     type: EAType.EAT_INIT_MESSAGES_FINISHED,
-    tag: 'scene',
-    payload: { initMessagesFinished: {} }
+    tag: "scene",
+    payload: { initMessagesFinished: {} },
   }
 }
