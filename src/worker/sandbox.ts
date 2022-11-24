@@ -32,7 +32,12 @@ const allowListES5: Array<keyof typeof globalThis> = [
   'Array',
   'Promise',
   'NaN',
-  'Infinity'
+  'Infinity',
+  'Map',
+  'Set',
+  'require',
+  'exports',
+  'module'
 ]
 
 // eslint-disable-next-line @typescript-eslint/ban-types

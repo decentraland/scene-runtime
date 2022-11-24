@@ -10,6 +10,7 @@ import { setupFpsThrottling } from "./runtime/SetupFpsThrottling"
 import { DevToolsAdapter } from "./runtime/DevToolsAdapter"
 import { RuntimeEventCallback, RuntimeEvent, SceneRuntimeEventState, EventDataToRuntimeEvent } from "./runtime/Events"
 import type { Scene } from "@dcl/schemas/dist/platform/scene/index"
+import { createRuntime } from "./sdk7-runtime"
 
 /**
  * Converts a string position "-1,5" => { x: -1, y: 5 }
@@ -42,8 +43,8 @@ export async function startSceneRuntime(client: RpcClient) {
   const devToolsAdapter = new DevToolsAdapter(DevTools)
   const eventState: SceneRuntimeEventState = { allowOpenExternalUrl: false }
   const onEventFunctions: RuntimeEventCallback[] = []
-  const onUpdateFunctions: ((dt: number) => void)[] = []
-  const onStartFunctions: (() => void)[] = []
+  const onUpdateFunctions: ((dt: number) => Promise<void> | void)[] = []
+  const onStartFunctions: (() => Promise<void> | void)[] = []
   const batchEvents: DecentralandInterfaceOptions["batchEvents"] = {
     events: [],
   }
@@ -91,11 +92,11 @@ export async function startSceneRuntime(client: RpcClient) {
 
     const res = await EngineApi.sendBatch({ actions })
     for (const e of res.events) {
-      eventReceiver(EventDataToRuntimeEvent(e))
+      await eventReceiver(EventDataToRuntimeEvent(e))
     }
   }
 
-  function eventReceiver(event: RuntimeEvent) {
+  async function eventReceiver(event: RuntimeEvent) {
     if (event.type === "raycastResponse") {
       const idAsNumber = parseInt(event.data.queryId, 10)
       if (numberToIdStore[idAsNumber]) {
@@ -107,7 +108,7 @@ export async function startSceneRuntime(client: RpcClient) {
       didStart = true
       for (const startFunctionCb of onStartFunctions) {
         try {
-          startFunctionCb()
+          await startFunctionCb()
         } catch (e: any) {
           devToolsAdapter.error(e)
         }
@@ -120,7 +121,7 @@ export async function startSceneRuntime(client: RpcClient) {
 
     for (const cb of onEventFunctions) {
       try {
-        cb(event)
+        await cb(event)
       } catch (err: any) {
         devToolsAdapter.error(err)
       }
@@ -132,57 +133,67 @@ export async function startSceneRuntime(client: RpcClient) {
 
   function reschedule() {
     const ms = Math.max((updateIntervalMs - (performance.now() - start)) | 0, 0)
-    setTimeout(mainLoop, ms)
+    return sleep(ms)
   }
 
-  function mainLoop() {
-    const now = performance.now()
-    const dtMillis = now - start
-    start = now
+  async function mainLoop() {
+    while (true) {
+      const now = performance.now()
+      const dtMillis = now - start
+      start = now
 
-    const dtSecs = dtMillis / 1000
+      const dtSecs = dtMillis / 1000
 
-    for (const trigger of onUpdateFunctions) {
-      try {
-        trigger(dtSecs)
-      } catch (e: any) {
-        devToolsAdapter.error(e)
+      for (const trigger of onUpdateFunctions) {
+        try {
+          await trigger(dtSecs)
+        } catch (e: any) {
+          devToolsAdapter.error(e)
+        }
       }
-    }
 
-    sendBatchAndProcessEvents().catch(devToolsAdapter.error).finally(reschedule)
+      try {
+        await sendBatchAndProcessEvents()
+      } catch (error: any) {
+        devToolsAdapter.error(error)
+      }
+
+      await reschedule()
+    }
   }
+
+  const dcl = createDecentralandInterface({
+    clientPort,
+    onError: (err: Error) => devToolsAdapter.error(err),
+    onLog: (...args: any) => devToolsAdapter.log(...args),
+    sceneId: bootstrapData.id,
+    eventState,
+    batchEvents,
+    EngineApi,
+    onEventFunctions,
+    onStartFunctions,
+    onUpdateFunctions,
+  })
+
+  // create the context for the scene
+  const runtimeExecutionContext = prepareSandboxContext({
+    dcl,
+    canUseFetch,
+    canUseWebsocket,
+    log: dcl.log,
+    previewMode: isPreview.isPreview || unsafeAllowed.status,
+  })
+
+  if (bootstrapData.useFPSThrottling === true) {
+    setupFpsThrottling(dcl, fullData.scene.parcels.map(parseParcelPosition), (newValue) => {
+      updateIntervalMs = newValue
+    })
+  }
+
+  const sceneModule = createRuntime(runtimeExecutionContext, clientPort)
 
   try {
     const sourceCode = await codeRequest.text()
-
-    const dcl = createDecentralandInterface({
-      clientPort,
-      onError: (err: Error) => devToolsAdapter.error(err),
-      onLog: (...args: any) => devToolsAdapter.log(...args),
-      sceneId: bootstrapData.id,
-      eventState,
-      batchEvents,
-      EngineApi,
-      onEventFunctions,
-      onStartFunctions,
-      onUpdateFunctions,
-    })
-
-    // create the context for the scene
-    const runtimeExecutionContext = prepareSandboxContext({
-      dcl,
-      canUseFetch,
-      canUseWebsocket,
-      log: dcl.log,
-      previewMode: isPreview.isPreview || unsafeAllowed.status,
-    })
-
-    if (bootstrapData.useFPSThrottling === true) {
-      setupFpsThrottling(dcl, fullData.scene.parcels.map(parseParcelPosition), (newValue) => {
-        updateIntervalMs = newValue
-      })
-    }
 
     // run the code of the scene
     await customEval(sourceCode, runtimeExecutionContext)
@@ -200,13 +211,21 @@ export async function startSceneRuntime(client: RpcClient) {
   // then notify the kernel that the initial scene was loaded
   batchEvents.events.push(initMessagesFinished())
 
+  if (sceneModule.exports.onSceneLoaded) {
+    onStartFunctions.push(sceneModule.exports.onSceneLoaded)
+  }
+
+  if (sceneModule.exports.onUpdate) {
+    onUpdateFunctions.push(sceneModule.exports.onUpdate)
+  }
+
   // wait for didStart=true
   do {
     await sendBatchAndProcessEvents()
   } while (!didStart && (await sleep(100)))
 
   // finally, start event loop
-  mainLoop()
+  await mainLoop()
 
   // shutdown
 }
