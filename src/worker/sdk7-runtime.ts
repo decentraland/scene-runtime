@@ -35,6 +35,7 @@ export function createRuntime(runtime: Record<string, any>, clientPort: RpcClien
     configurable: false,
     value: (moduleName: string) => {
       if (moduleName in loadedModules) return loadedModules[moduleName]
+      if (!moduleName.startsWith("~system/")) throw new Error("Cannot resolve module: " + moduleName)
       const module = loadSceneModule(clientPort, moduleName)
       loadedModules[moduleName] = module
       return module
