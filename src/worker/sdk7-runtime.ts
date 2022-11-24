@@ -13,7 +13,7 @@ export type SDK7Module = {
 export function createRuntime(runtime: Record<string, any>, clientPort: RpcClientPort): SDK7Module {
   const exports: Partial<SceneInterface> = {}
 
-  const module = Object.seal({ exports })
+  const module = { exports }
 
   Object.defineProperty(runtime, "module", {
     configurable: false,
