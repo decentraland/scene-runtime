@@ -1,10 +1,10 @@
 import { Protocol } from 'devtools-protocol'
-import { LoadedModules } from './index'
+import { LoadedModules } from '../client'
 
 export class DevToolsAdapter {
   exceptions: Error[] = []
 
-  constructor(public devTools: LoadedModules['DevTools']) { }
+  constructor(public devTools: LoadedModules['DevTools']) {}
 
   log(...args: any[]) {
     const params: Protocol.Runtime.ConsoleAPICalledEvent = {

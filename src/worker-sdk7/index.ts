@@ -1,15 +1,15 @@
-import { createRpcClient } from "@dcl/rpc"
-import { WebWorkerTransport } from "@dcl/rpc/dist/transports/WebWorker"
+import { createRpcClient } from '@dcl/rpc'
+import { WebWorkerTransport } from '@dcl/rpc/dist/transports/WebWorker'
 
-import { LoadableApis } from "./client"
-import { resolveMapping } from "../common/Utils"
-import { customEval, prepareSandboxContext } from "../common/sandbox"
-import { RpcClient } from "@dcl/rpc/dist/types"
-import { PermissionItem } from "@dcl/protocol/out-ts/decentraland/kernel/apis/permissions.gen"
+import { LoadableApis } from './client'
+import { resolveMapping } from '../common/Utils'
+import { customEval, prepareSandboxContext } from '../common/sandbox'
+import { RpcClient } from '@dcl/rpc/dist/types'
+import { PermissionItem } from '@dcl/protocol/out-ts/decentraland/kernel/apis/permissions.gen'
 
-import { DevToolsAdapter } from "./client/DevToolsAdapter"
-import type { Scene } from "@dcl/schemas/dist/platform/scene/index"
-import { createRuntime } from "./sdk7-runtime"
+import { DevToolsAdapter } from './client/DevToolsAdapter'
+import type { Scene } from '@dcl/schemas/dist/platform/scene/index'
+import { createRuntime } from './sdk7-runtime'
 
 export async function startSceneRuntime(client: RpcClient) {
   const workerName = self.name
@@ -18,19 +18,19 @@ export async function startSceneRuntime(client: RpcClient) {
   const [EnvironmentApi, Permissions, DevTools] = await Promise.all([
     LoadableApis.EnvironmentApi(clientPort),
     LoadableApis.Permissions(clientPort),
-    LoadableApis.DevTools(clientPort),
+    LoadableApis.DevTools(clientPort)
   ])
 
   const [canUseWebsocket, canUseFetch] = (
     await Permissions.hasManyPermissions({
-      permissions: [PermissionItem.PI_USE_WEBSOCKET, PermissionItem.PI_USE_FETCH],
+      permissions: [PermissionItem.PI_USE_WEBSOCKET, PermissionItem.PI_USE_FETCH]
     })
   ).hasManyPermission
 
   const devToolsAdapter = new DevToolsAdapter(DevTools)
 
   const bootstrapData = await EnvironmentApi.getBootstrapData({})
-  const fullData: Scene = JSON.parse(bootstrapData.entity?.metadataJson || "{}")
+  const fullData: Scene = JSON.parse(bootstrapData.entity?.metadataJson || '{}')
   const isPreview = await EnvironmentApi.isPreviewMode({})
   const unsafeAllowed = await EnvironmentApi.areUnsafeRequestAllowed({})
 
@@ -78,7 +78,7 @@ export async function startSceneRuntime(client: RpcClient) {
       canUseFetch,
       canUseWebsocket,
       log: (str) => devToolsAdapter.log(str).catch(devToolsAdapter.error),
-      previewMode: isPreview.isPreview || unsafeAllowed.status,
+      previewMode: isPreview.isPreview || unsafeAllowed.status
     })
 
     if (bootstrapData.useFPSThrottling === true) {

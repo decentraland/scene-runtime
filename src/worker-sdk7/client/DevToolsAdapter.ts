@@ -1,28 +1,28 @@
-import { Protocol } from "devtools-protocol"
-import { LoadedModules } from "./index"
+import { Protocol } from 'devtools-protocol'
+import { LoadedModules } from './index'
 
 export class DevToolsAdapter {
   exceptions: Error[] = []
 
-  constructor(public devTools: LoadedModules["DevTools"]) {}
+  constructor(public devTools: LoadedModules['DevTools']) {}
 
   async log(...args: any[]) {
     const params: Protocol.Runtime.ConsoleAPICalledEvent = {
-      type: "log",
+      type: 'log',
       timestamp: performance.now(),
       executionContextId: 0,
       args: args.map(($) => {
         let value = undefined
         let unserializableValue = undefined
         const type = typeof $
-        if (type === "object" && $ !== null) {
+        if (type === 'object' && $ !== null) {
           try {
             JSON.stringify($)
             value = $
           } catch (error) {
             unserializableValue = Object.prototype.toString.apply($)
           }
-        } else if (type === "number" && (isNaN($) || !isFinite($))) {
+        } else if (type === 'number' && (isNaN($) || !isFinite($))) {
           unserializableValue = Object.prototype.toString.apply($)
         } else {
           value = $
@@ -30,15 +30,15 @@ export class DevToolsAdapter {
         const remoteObject: Protocol.Runtime.RemoteObject = {
           type: typeof $,
           value,
-          unserializableValue,
+          unserializableValue
         }
         return remoteObject
-      }),
+      })
     }
 
     await this.devTools!.event({
-      type: "Runtime.consoleAPICalled",
-      jsonPayload: JSON.stringify([params]),
+      type: 'Runtime.consoleAPICalled',
+      jsonPayload: JSON.stringify([params])
     })
   }
 
@@ -48,12 +48,12 @@ export class DevToolsAdapter {
     let unserializableValue = undefined
     try {
       value = JSON.stringify(e)
-      if (value === "{}" && e instanceof Error) {
+      if (value === '{}' && e instanceof Error) {
         // most Error objects serialize to empty objects
         value = JSON.stringify({
           message: e.message,
           name: e.name,
-          stack: e.stack,
+          stack: e.stack
         })
       }
     } catch (error) {
@@ -62,22 +62,22 @@ export class DevToolsAdapter {
     const exception: Protocol.Runtime.RemoteObject = {
       type: typeof e,
       value,
-      unserializableValue,
+      unserializableValue
     }
     const param: Protocol.Runtime.ExceptionThrownEvent = {
       timestamp: performance.now(),
       exceptionDetails: {
-        text: e.toString() + "\n" + e.stack,
+        text: e.toString() + '\n' + e.stack,
         exceptionId,
         columnNumber: 0,
         lineNumber: 0,
-        exception,
-      },
+        exception
+      }
     }
 
     await this.devTools!.event({
-      type: "Runtime.exceptionThrown",
-      jsonPayload: JSON.stringify([param]),
+      type: 'Runtime.exceptionThrown',
+      jsonPayload: JSON.stringify([param])
     })
   }
 }

@@ -3,19 +3,19 @@ export function setupFpsThrottling(
   parcels: Array<{ x: number; y: number }>,
   onChangeUpdateInterval: (newValue: number) => void
 ) {
-  dcl.subscribe("positionChanged")
+  dcl.subscribe('positionChanged')
   dcl.onEvent((event) => {
-    if (event.type !== "positionChanged") {
+    if (event.type !== 'positionChanged') {
       return
     }
 
-    const e = event.data as IEvents["positionChanged"]
+    const e = event.data as IEvents['positionChanged']
 
     //NOTE: calling worldToGrid from parcelScenePositions.ts here crashes kernel when there are 80+ workers since chrome 92.
     const PARCEL_SIZE = 16
     const playerPosition = {
       x: Math.floor(e.cameraPosition.x / PARCEL_SIZE),
-      y: Math.floor(e.cameraPosition.z / PARCEL_SIZE),
+      y: Math.floor(e.cameraPosition.z / PARCEL_SIZE)
     }
 
     if (playerPosition === undefined) {
@@ -52,7 +52,7 @@ export function setupFpsThrottling(
   })
 }
 
-function distanceSquared(a: Record<"x" | "y", number>, b: Record<"x" | "y", number>) {
+function distanceSquared(a: Record<'x' | 'y', number>, b: Record<'x' | 'y', number>) {
   const x = a.x - b.x
   const y = a.y - b.y
 

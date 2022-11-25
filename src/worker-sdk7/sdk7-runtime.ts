@@ -1,5 +1,5 @@
-import { RpcClientPort } from "@dcl/rpc"
-import { LoadableApis } from "./client"
+import { RpcClientPort } from '@dcl/rpc'
+import { LoadableApis } from './client'
 
 export type GenericRpcModule = Record<string, (...args: any) => Promise<unknown>>
 
@@ -17,44 +17,44 @@ export function createRuntime(runtime: Record<string, any>, clientPort: RpcClien
 
   const module = { exports }
 
-  Object.defineProperty(runtime, "module", {
+  Object.defineProperty(runtime, 'module', {
     configurable: false,
     get() {
       return module
-    },
+    }
   })
 
-  Object.defineProperty(runtime, "exports", {
+  Object.defineProperty(runtime, 'exports', {
     configurable: false,
     get() {
       return module
-    },
+    }
   })
 
   const loadedModules: Record<string, GenericRpcModule> = {}
 
-  Object.defineProperty(runtime, "require", {
+  Object.defineProperty(runtime, 'require', {
     configurable: false,
     value: (moduleName: string) => {
       if (moduleName in loadedModules) return loadedModules[moduleName]
       const module = loadSceneModule(clientPort, moduleName)
       loadedModules[moduleName] = module
       return module
-    },
+    }
   })
 
   return {
     get exports() {
       return module.exports
-    },
+    }
   }
 }
 
 function loadSceneModule(clientPort: RpcClientPort, moduleName: string): GenericRpcModule {
-  const moduleToLoad = moduleName.replace(/^~system\//, "")
+  const moduleToLoad = moduleName.replace(/^~system\//, '')
   if (moduleToLoad in LoadableApis) {
     return (LoadableApis as any)[moduleToLoad](clientPort)
   } else {
-    throw new Error("Unknown module ${moduleName}")
+    throw new Error('Unknown module ${moduleName}')
   }
 }

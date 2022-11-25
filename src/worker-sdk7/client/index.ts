@@ -1,19 +1,19 @@
-import * as codegen from "@dcl/rpc/dist/codegen"
-import { RpcClientPort } from "@dcl/rpc/dist/types"
-import { ParcelIdentityServiceDefinition } from "@dcl/protocol/out-ts/decentraland/kernel/apis/parcel_identity.gen"
-import { PlayersServiceDefinition } from "@dcl/protocol/out-ts/decentraland/kernel/apis/players.gen"
-import { PortableExperiencesServiceDefinition } from "@dcl/protocol/out-ts/decentraland/kernel/apis/portable_experiences.gen"
-import { RestrictedActionsServiceDefinition } from "@dcl/protocol/out-ts/decentraland/kernel/apis/restricted_actions.gen"
-import { UserActionModuleServiceDefinition } from "@dcl/protocol/out-ts/decentraland/kernel/apis/user_action_module.gen"
-import { UserIdentityServiceDefinition } from "@dcl/protocol/out-ts/decentraland/kernel/apis/user_identity.gen"
-import { SignedFetchServiceDefinition } from "@dcl/protocol/out-ts/decentraland/kernel/apis/signed_fetch.gen"
-import { CommunicationsControllerServiceDefinition } from "@dcl/protocol/out-ts/decentraland/kernel/apis/communications_controller.gen"
-import { EnvironmentApiServiceDefinition } from "@dcl/protocol/out-ts/decentraland/kernel/apis/environment_api.gen"
-import { EthereumControllerServiceDefinition } from "@dcl/protocol/out-ts/decentraland/kernel/apis/ethereum_controller.gen"
-import { DevToolsServiceDefinition } from "@dcl/protocol/out-ts/decentraland/kernel/apis/dev_tools.gen"
-import { EngineApiServiceDefinition } from "@dcl/protocol/out-ts/decentraland/kernel/apis/engine_api.gen"
-import { PermissionsServiceDefinition } from "@dcl/protocol/out-ts/decentraland/kernel/apis/permissions.gen"
-import { createLegacyWeb3Provider } from "./Web3Provider"
+import * as codegen from '@dcl/rpc/dist/codegen'
+import { RpcClientPort } from '@dcl/rpc/dist/types'
+import { ParcelIdentityServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/parcel_identity.gen'
+import { PlayersServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/players.gen'
+import { PortableExperiencesServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/portable_experiences.gen'
+import { RestrictedActionsServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/restricted_actions.gen'
+import { UserActionModuleServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/user_action_module.gen'
+import { UserIdentityServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/user_identity.gen'
+import { SignedFetchServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/signed_fetch.gen'
+import { CommunicationsControllerServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/communications_controller.gen'
+import { EnvironmentApiServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/environment_api.gen'
+import { EthereumControllerServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/ethereum_controller.gen'
+import { DevToolsServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/dev_tools.gen'
+import { EngineApiServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/engine_api.gen'
+import { PermissionsServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/permissions.gen'
+import { createLegacyWeb3Provider } from './Web3Provider'
 
 export const LoadableApis = {
   // TODO: Review final API before public launch
@@ -84,7 +84,7 @@ export const LoadableApis = {
     return codegen.loadService<Context, UserIdentityServiceDefinition>(clientPort, UserIdentityServiceDefinition)
   },
 
-  ["web3-provider"]: createLegacyWeb3Provider,
+  ['web3-provider']: createLegacyWeb3Provider
 }
 
 export type ILoadedModules<T> = {
