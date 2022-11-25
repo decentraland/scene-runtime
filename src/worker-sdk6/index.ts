@@ -1,16 +1,18 @@
+import { createRpcClient } from "@dcl/rpc"
+import { WebWorkerTransport } from "@dcl/rpc/dist/transports/WebWorker"
+
 import { LoadableApis } from "./client"
-import { componentSerializeOpt, initMessagesFinished, numberToIdStore, resolveMapping } from "./Utils"
-import { customEval, prepareSandboxContext } from "./sandbox"
+import { componentSerializeOpt, initMessagesFinished, numberToIdStore, resolveMapping } from "../common/Utils"
+import { customEval, prepareSandboxContext } from "../common/sandbox"
 import { RpcClient } from "@dcl/rpc/dist/types"
 import { PermissionItem } from "@dcl/protocol/out-ts/decentraland/kernel/apis/permissions.gen"
 
-import { createDecentralandInterface, DecentralandInterfaceOptions } from "./runtime/DecentralandInterface"
-import { setupFpsThrottling } from "./runtime/SetupFpsThrottling"
+import { createDecentralandInterface, DecentralandInterfaceOptions } from "./DecentralandInterface"
+import { setupFpsThrottling } from "./SetupFpsThrottling"
 
-import { DevToolsAdapter } from "./runtime/DevToolsAdapter"
-import { RuntimeEventCallback, RuntimeEvent, SceneRuntimeEventState, EventDataToRuntimeEvent } from "./runtime/Events"
+import { DevToolsAdapter } from "./client/DevToolsAdapter"
+import { RuntimeEventCallback, RuntimeEvent, SceneRuntimeEventState, EventDataToRuntimeEvent } from "./Events"
 import type { Scene } from "@dcl/schemas/dist/platform/scene/index"
-import { createRuntime } from "./sdk7-runtime"
 
 /**
  * Converts a string position "-1,5" => { x: -1, y: 5 }
@@ -60,9 +62,6 @@ export async function startSceneRuntime(client: RpcClient) {
     throw new Error(`No boostrap data`)
   }
 
-  // TODO: https://github.com/decentraland/sdk/issues/471
-  const IS_SDK7 = "ecs7" in fullData || false
-
   const mappingName = fullData.main
   const mapping = bootstrapData.entity?.content.find(($) => $.file === mappingName)
 
@@ -97,6 +96,8 @@ export async function startSceneRuntime(client: RpcClient) {
     for (const e of res.events) {
       await eventReceiver(EventDataToRuntimeEvent(e))
     }
+
+    await EngineApi.crdtSendToRenderer({ data: Uint8Array.of() })
   }
 
   async function eventReceiver(event: RuntimeEvent) {
@@ -156,7 +157,7 @@ export async function startSceneRuntime(client: RpcClient) {
       }
 
       try {
-        if (!IS_SDK7) await sendBatchAndProcessEvents()
+        await sendBatchAndProcessEvents()
       } catch (error: any) {
         devToolsAdapter.error(error)
       }
@@ -180,7 +181,7 @@ export async function startSceneRuntime(client: RpcClient) {
 
   // create the context for the scene
   const runtimeExecutionContext = prepareSandboxContext({
-    dcl: IS_SDK7 ? undefined : dcl,
+    dcl,
     canUseFetch,
     canUseWebsocket,
     log: dcl.log,
@@ -192,9 +193,6 @@ export async function startSceneRuntime(client: RpcClient) {
       updateIntervalMs = newValue
     })
   }
-
-  // TODO: move SDK7 runtime to its own worker
-  const sceneModule = IS_SDK7 ? createRuntime(runtimeExecutionContext, clientPort) : undefined
 
   try {
     const sourceCode = await codeRequest.text()
@@ -214,14 +212,6 @@ export async function startSceneRuntime(client: RpcClient) {
   }
   // then notify the kernel that the initial scene was loaded
   batchEvents.events.push(initMessagesFinished())
-
-  if (sceneModule?.exports.onSceneLoaded) {
-    onStartFunctions.push(sceneModule.exports.onSceneLoaded)
-  }
-
-  if (sceneModule?.exports.onUpdate) {
-    onUpdateFunctions.push(sceneModule.exports.onUpdate)
-  }
 
   // wait for didStart=true
   do {
@@ -246,3 +236,7 @@ async function sleep(ms: number): Promise<boolean> {
   await new Promise<void>((resolve) => setTimeout(resolve, Math.max(ms | 0, 0)))
   return true
 }
+
+createRpcClient(WebWorkerTransport(self))
+  .then(startSceneRuntime)
+  .catch((err) => console.error(err))

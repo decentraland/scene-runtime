@@ -19,16 +19,7 @@ export const LoadableApis = {
   EngineApi: createEngineApiServiceClient,
   Permissions: createPermissionsServiceClient,
 
-  SignedFetch: SignedFetchServiceClient.create,
-  CommunicationsController: CommunicationsControllerServiceClient.create,
   EnvironmentApi: EnvironmentApiServiceClient.create,
-  EthereumController: EthereumControllerServiceClient.create,
-  ParcelIdentity: ParcelIdentityServiceClient.create,
-  Players: PlayersServiceClient.create,
-  PortableExperience: PortableExperienceServiceClient.create,
-  RestrictedActions: RestrictedActionsServiceClient.create,
-  UserActionModule: UserActionModuleServiceClient.create,
-  UserIdentity: UserIdentityServiceClient.create,
 
   // Legacy
   LegacySignedFetch: SignedFetchServiceClient.createLegacy,

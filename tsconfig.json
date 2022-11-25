@@ -23,7 +23,7 @@
     "outDir": "dist",
     "skipLibCheck": true,
     "lib": ["es2020", "webworker"],
-    "types": ["@dcl/posix"]
+    "types": []
   },
   "include": ["src"]
 }

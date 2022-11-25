@@ -1,9 +1,11 @@
 import { RpcClientPort } from "@dcl/rpc"
-import { GenericRpcModule, loadSceneModule } from "./runtime/DecentralandInterface"
+import { LoadableApis } from "./client"
+
+export type GenericRpcModule = Record<string, (...args: any) => Promise<unknown>>
 
 export type SceneInterface = {
   onUpdate(dt: number): Promise<void>
-  onSceneLoaded(): Promise<void>
+  onStart(): Promise<void>
 }
 
 export type SDK7Module = {
@@ -35,7 +37,6 @@ export function createRuntime(runtime: Record<string, any>, clientPort: RpcClien
     configurable: false,
     value: (moduleName: string) => {
       if (moduleName in loadedModules) return loadedModules[moduleName]
-      if (!moduleName.startsWith("~system/")) throw new Error("Cannot resolve module: " + moduleName)
       const module = loadSceneModule(clientPort, moduleName)
       loadedModules[moduleName] = module
       return module
@@ -46,5 +47,14 @@ export function createRuntime(runtime: Record<string, any>, clientPort: RpcClien
     get exports() {
       return module.exports
     },
+  }
+}
+
+function loadSceneModule(clientPort: RpcClientPort, moduleName: string): GenericRpcModule {
+  const moduleToLoad = moduleName.replace(/^~system\//, "")
+  if (moduleToLoad in LoadableApis) {
+    return (LoadableApis as any)[moduleToLoad](clientPort)
+  } else {
+    throw new Error("Unknown module ${moduleName}")
   }
 }
