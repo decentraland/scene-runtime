@@ -1,6 +1,6 @@
 import WebSocket from "ws"
 globalThis.WebSocket = WebSocket as any
-import { createWebSocket } from "../src/worker/WebSocket"
+import { createWebSocket } from "../src/common/WebSocket"
 
 class FakeWebSocket {
   constructor(url: string | URL, protocols?: string | string[]) {}

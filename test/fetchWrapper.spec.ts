@@ -1,7 +1,7 @@
 import { Request, Response, Headers, fetch } from "undici"
 Object.assign(globalThis, { Request, Response, Headers, fetch })
 
-import { createFetch, FetchFunction } from "../src/worker/Fetch"
+import { createFetch, FetchFunction } from "../src/common/Fetch"
 
 const originalFetch: FetchFunction = async (resource, init) => {
   return new Response() as any
