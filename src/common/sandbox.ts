@@ -1,3 +1,5 @@
+/// <reference types="@dcl/posix" />
+
 import { createFetch } from './Fetch'
 import { createWebSocket } from './WebSocket'
 
