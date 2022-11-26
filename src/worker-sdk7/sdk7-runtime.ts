@@ -1,5 +1,6 @@
 import { RpcClientPort } from '@dcl/rpc'
 import { LoadableApis } from './client'
+import { DevToolsAdapter } from './client/DevToolsAdapter'
 
 export type GenericRpcModule = Record<string, (...args: any) => Promise<unknown>>
 
@@ -12,7 +13,7 @@ export type SDK7Module = {
   readonly exports: Partial<SceneInterface>
 }
 
-export function createRuntime(runtime: Record<string, any>, clientPort: RpcClientPort): SDK7Module {
+export function createRuntime(runtime: Record<string, any>, clientPort: RpcClientPort, devtools: DevToolsAdapter): SDK7Module {
   const exports: Partial<SceneInterface> = {}
 
   const module = { exports }
@@ -28,6 +29,17 @@ export function createRuntime(runtime: Record<string, any>, clientPort: RpcClien
     configurable: false,
     get() {
       return module
+    }
+  })
+
+  Object.defineProperty(runtime, 'console', {
+    value: {
+      log: devtools.log,
+      info: devtools.log,
+      debug: devtools.log,
+      trace: devtools.log,
+      warning: devtools.error,
+      error: devtools.error
     }
   })
 

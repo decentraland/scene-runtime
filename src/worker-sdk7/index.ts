@@ -88,7 +88,7 @@ export async function startSceneRuntime(client: RpcClient) {
       // })
     }
 
-    const sceneModule = createRuntime(runtimeExecutionContext, clientPort)
+    const sceneModule = createRuntime(runtimeExecutionContext, clientPort, devToolsAdapter)
 
     // run the code of the scene
     await customEval(sourceCode, runtimeExecutionContext)
