@@ -34,12 +34,12 @@ export function createRuntime(runtime: Record<string, any>, clientPort: RpcClien
 
   Object.defineProperty(runtime, 'console', {
     value: {
-      log: devtools.log,
-      info: devtools.log,
-      debug: devtools.log,
-      trace: devtools.log,
-      warning: devtools.error,
-      error: devtools.error
+      log: devtools.log.bind(devtools),
+      info: devtools.log.bind(devtools),
+      debug: devtools.log.bind(devtools),
+      trace: devtools.log.bind(devtools),
+      warning: devtools.error.bind(devtools),
+      error: devtools.error.bind(devtools)
     }
   })
 
