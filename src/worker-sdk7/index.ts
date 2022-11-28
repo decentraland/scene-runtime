@@ -123,7 +123,7 @@ export async function startSceneRuntime(client: RpcClient) {
 
         // wait for next frame
         const ms = Math.max((updateIntervalMs - (performance.now() - start)) | 0, 0)
-        return sleep(ms)
+        await sleep(ms)
       }
     }
   }
