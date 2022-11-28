@@ -97,6 +97,15 @@ export async function startSceneRuntime(client: RpcClient) {
       await sceneModule.exports.onStart()
     }
 
+    if (!sceneModule.exports.onUpdate && !sceneModule.exports.onStart) {
+      // there may be cases where onStart is present and onUpdate not for "static-ish" scenes
+      await devToolsAdapter.error(
+        new Error(
+          '🚨🚨🚨🚨🚨 Your scene does not export an onUpdate function. Documentation: https://dcl.gg/sdk/missing-onUpdate'
+        )
+      )
+    }
+
     // finally, start event loop
     if (sceneModule.exports.onUpdate) {
       // first update always use 0.0 as delta time
