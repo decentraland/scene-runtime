@@ -1,5 +1,5 @@
 import { LoadableApis } from '../client'
-import { componentNameRE, generatePBObject, getIdAsNumber } from '../Utils'
+import { componentNameRE, generatePBObject, getIdAsNumber } from '../../common/Utils'
 import { RpcClientPort } from '@dcl/rpc/dist/types'
 import { RuntimeEventCallback } from './Events'
 import {

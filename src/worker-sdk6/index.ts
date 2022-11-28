@@ -1,16 +1,18 @@
-import { LoadableApis } from "./client"
-import { componentSerializeOpt, initMessagesFinished, numberToIdStore, resolveMapping } from "./Utils"
-import { customEval, prepareSandboxContext } from "./sandbox"
-import { RpcClient } from "@dcl/rpc/dist/types"
-import { PermissionItem } from "@dcl/protocol/out-ts/decentraland/kernel/apis/permissions.gen"
+import { createRpcClient } from '@dcl/rpc'
+import { WebWorkerTransport } from '@dcl/rpc/dist/transports/WebWorker'
 
-import { createDecentralandInterface, DecentralandInterfaceOptions } from "./runtime/DecentralandInterface"
-import { setupFpsThrottling } from "./runtime/SetupFpsThrottling"
+import { LoadableApis } from './client'
+import { componentSerializeOpt, initMessagesFinished, numberToIdStore, resolveMapping } from '../common/Utils'
+import { customEval, prepareSandboxContext } from '../common/sandbox'
+import { RpcClient } from '@dcl/rpc/dist/types'
+import { PermissionItem } from '@dcl/protocol/out-ts/decentraland/kernel/apis/permissions.gen'
 
-import { DevToolsAdapter } from "./runtime/DevToolsAdapter"
-import { RuntimeEventCallback, RuntimeEvent, SceneRuntimeEventState, EventDataToRuntimeEvent } from "./runtime/Events"
-import type { Scene } from "@dcl/schemas/dist/platform/scene/index"
-import { createRuntime } from "./sdk7-runtime"
+import { createDecentralandInterface, DecentralandInterfaceOptions } from './runtime/DecentralandInterface'
+import { setupFpsThrottling } from './runtime/SetupFpsThrottling'
+
+import { DevToolsAdapter } from './runtime/DevToolsAdapter'
+import { RuntimeEventCallback, RuntimeEvent, SceneRuntimeEventState, EventDataToRuntimeEvent } from './runtime/Events'
+import type { Scene } from '@dcl/schemas/dist/platform/scene/index'
 
 /**
  * Converts a string position "-1,5" => { x: -1, y: 5 }
@@ -31,12 +33,12 @@ export async function startSceneRuntime(client: RpcClient) {
     LoadableApis.EngineApi(clientPort),
     LoadableApis.EnvironmentApi(clientPort),
     LoadableApis.Permissions(clientPort),
-    LoadableApis.DevTools(clientPort),
+    LoadableApis.DevTools(clientPort)
   ])
 
   const [canUseWebsocket, canUseFetch] = (
     await Permissions.hasManyPermissions({
-      permissions: [PermissionItem.PI_USE_WEBSOCKET, PermissionItem.PI_USE_FETCH],
+      permissions: [PermissionItem.PI_USE_WEBSOCKET, PermissionItem.PI_USE_FETCH]
     })
   ).hasManyPermission
 
@@ -45,12 +47,12 @@ export async function startSceneRuntime(client: RpcClient) {
   const onEventFunctions: RuntimeEventCallback[] = []
   const onUpdateFunctions: ((dt: number) => Promise<void> | void)[] = []
   const onStartFunctions: (() => Promise<void> | void)[] = []
-  const batchEvents: DecentralandInterfaceOptions["batchEvents"] = {
-    events: [],
+  const batchEvents: DecentralandInterfaceOptions['batchEvents'] = {
+    events: []
   }
 
   const bootstrapData = await EnvironmentApi.getBootstrapData({})
-  const fullData: Scene = JSON.parse(bootstrapData.entity?.metadataJson || "{}")
+  const fullData: Scene = JSON.parse(bootstrapData.entity?.metadataJson || '{}')
   const isPreview = await EnvironmentApi.isPreviewMode({})
   const unsafeAllowed = await EnvironmentApi.areUnsafeRequestAllowed({})
 
@@ -59,9 +61,6 @@ export async function startSceneRuntime(client: RpcClient) {
   if (!fullData || !fullData.main) {
     throw new Error(`No boostrap data`)
   }
-
-  // TODO: https://github.com/decentraland/sdk/issues/471
-  const IS_SDK7 = "ecs7" in fullData || false
 
   const mappingName = fullData.main
   const mapping = bootstrapData.entity?.content.find(($) => $.file === mappingName)
@@ -81,7 +80,7 @@ export async function startSceneRuntime(client: RpcClient) {
     )
   }
 
-  componentSerializeOpt.useBinaryTransform = explorerConfiguration.configurations["enableBinaryTransform"] === "true"
+  componentSerializeOpt.useBinaryTransform = explorerConfiguration.configurations['enableBinaryTransform'] === 'true'
 
   let didStart = false
   let updateIntervalMs: number = 1000 / 30
@@ -97,17 +96,19 @@ export async function startSceneRuntime(client: RpcClient) {
     for (const e of res.events) {
       await eventReceiver(EventDataToRuntimeEvent(e))
     }
+
+    // TODO: limit FPS of SDK6 scenes: await EngineApi.crdtSendToRenderer({ data: Uint8Array.of() })
   }
 
   async function eventReceiver(event: RuntimeEvent) {
-    if (event.type === "raycastResponse") {
+    if (event.type === 'raycastResponse') {
       const idAsNumber = parseInt(event.data.queryId, 10)
       if (numberToIdStore[idAsNumber]) {
         event.data.queryId = numberToIdStore[idAsNumber].toString()
       }
     }
 
-    if (!didStart && event.type === "sceneStart") {
+    if (!didStart && event.type === 'sceneStart') {
       didStart = true
       for (const startFunctionCb of onStartFunctions) {
         try {
@@ -156,7 +157,7 @@ export async function startSceneRuntime(client: RpcClient) {
       }
 
       try {
-        if (!IS_SDK7) await sendBatchAndProcessEvents()
+        await sendBatchAndProcessEvents()
       } catch (error: any) {
         devToolsAdapter.error(error)
       }
@@ -175,16 +176,16 @@ export async function startSceneRuntime(client: RpcClient) {
     EngineApi,
     onEventFunctions,
     onStartFunctions,
-    onUpdateFunctions,
+    onUpdateFunctions
   })
 
   // create the context for the scene
   const runtimeExecutionContext = prepareSandboxContext({
-    dcl: IS_SDK7 ? undefined : dcl,
+    dcl,
     canUseFetch,
     canUseWebsocket,
     log: dcl.log,
-    previewMode: isPreview.isPreview || unsafeAllowed.status,
+    previewMode: isPreview.isPreview || unsafeAllowed.status
   })
 
   if (bootstrapData.useFPSThrottling === true) {
@@ -192,9 +193,6 @@ export async function startSceneRuntime(client: RpcClient) {
       updateIntervalMs = newValue
     })
   }
-
-  // TODO: move SDK7 runtime to its own worker
-  const sceneModule = IS_SDK7 ? createRuntime(runtimeExecutionContext, clientPort) : undefined
 
   try {
     const sourceCode = await codeRequest.text()
@@ -215,14 +213,6 @@ export async function startSceneRuntime(client: RpcClient) {
   // then notify the kernel that the initial scene was loaded
   batchEvents.events.push(initMessagesFinished())
 
-  if (sceneModule?.exports.onSceneLoaded) {
-    onStartFunctions.push(sceneModule.exports.onSceneLoaded)
-  }
-
-  if (sceneModule?.exports.onUpdate) {
-    onUpdateFunctions.push(sceneModule.exports.onUpdate)
-  }
-
   // wait for didStart=true
   do {
     await sendBatchAndProcessEvents()
@@ -236,7 +226,7 @@ export async function startSceneRuntime(client: RpcClient) {
 
 function isPointerEvent(event: RuntimeEvent): boolean {
   switch (event.type) {
-    case "uuidEvent":
+    case 'uuidEvent':
       return event.data?.payload?.buttonId !== undefined
   }
   return false
@@ -246,3 +236,7 @@ async function sleep(ms: number): Promise<boolean> {
   await new Promise<void>((resolve) => setTimeout(resolve, Math.max(ms | 0, 0)))
   return true
 }
+
+createRpcClient(WebWorkerTransport(self))
+  .then(startSceneRuntime)
+  .catch((err) => console.error(err))

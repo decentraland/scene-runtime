@@ -5,7 +5,7 @@ const path = require('path')
 const commonOptions = {
   bundle: true,
   treeShaking: true,
-  inject: ['src/worker/web-worker-inject.js']
+  inject: ['src/common/web-worker-inject.js']
 }
 
 build({
@@ -14,16 +14,36 @@ build({
   debug: true,
   sourcemap: 'inline',
   sourcesContent: true,
-  entry: 'src/worker/index-webworker.ts',
-  outfile: 'dist/webworker.dev.js',
+  entry: 'src/worker-sdk6/index.ts',
+  outfile: 'dist/sdk6-webworker.dev.js',
   tsconfig: 'tsconfig.json'
 })
 
 build({
   ...commonOptions,
   minify: true,
-  entry: 'src/worker/index-webworker.ts',
-  outfile: 'dist/webworker.js',
+  entry: 'src/worker-sdk6/index.ts',
+  outfile: 'dist/sdk6-webworker.js',
+  tsconfig: 'tsconfig.json',
+})
+
+
+build({
+  ...commonOptions,
+  minify: false,
+  debug: true,
+  sourcemap: 'inline',
+  sourcesContent: true,
+  entry: 'src/worker-sdk7/index.ts',
+  outfile: 'dist/sdk7-webworker.dev.js',
+  tsconfig: 'tsconfig.json'
+})
+
+build({
+  ...commonOptions,
+  minify: true,
+  entry: 'src/worker-sdk7/index.ts',
+  outfile: 'dist/sdk7-webworker.js',
   tsconfig: 'tsconfig.json',
 })
 

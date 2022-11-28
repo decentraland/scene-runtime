@@ -1,3 +1,5 @@
+/// <reference types="@dcl/posix" />
+
 import { createFetch } from './Fetch'
 import { createWebSocket } from './WebSocket'
 
@@ -37,7 +39,8 @@ const allowListES5: Array<keyof typeof globalThis> = [
   'Set',
   'require',
   'exports',
-  'module'
+  'module',
+  'console'
 ]
 
 // eslint-disable-next-line @typescript-eslint/ban-types
