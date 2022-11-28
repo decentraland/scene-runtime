@@ -39,7 +39,8 @@ const allowListES5: Array<keyof typeof globalThis> = [
   'Set',
   'require',
   'exports',
-  'module'
+  'module',
+  'console'
 ]
 
 // eslint-disable-next-line @typescript-eslint/ban-types
