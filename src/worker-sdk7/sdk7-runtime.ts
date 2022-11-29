@@ -67,6 +67,6 @@ function loadSceneModule(clientPort: RpcClientPort, moduleName: string): Generic
   if (moduleToLoad in LoadableApis) {
     return (LoadableApis as any)[moduleToLoad](clientPort)
   } else {
-    throw new Error('Unknown module ${moduleName}')
+    throw new Error(`Unknown module ${moduleName}`)
   }
 }
