@@ -3,7 +3,7 @@ import { WebWorkerTransport } from '@dcl/rpc/dist/transports/WebWorker'
 
 import { LoadableApis } from './client'
 import { componentSerializeOpt, initMessagesFinished, numberToIdStore, resolveMapping } from '../common/Utils'
-import { customEval, prepareSandboxContext } from '../common/sandbox'
+import { customEval, prepareSandboxContext } from './runtime/sandbox'
 import { RpcClient } from '@dcl/rpc/dist/types'
 import { PermissionItem } from '@dcl/protocol/out-ts/decentraland/kernel/apis/permissions.gen'
 

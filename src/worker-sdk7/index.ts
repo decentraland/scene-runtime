@@ -3,13 +3,13 @@ import { WebWorkerTransport } from '@dcl/rpc/dist/transports/WebWorker'
 
 import { LoadableApis } from './client'
 import { resolveMapping } from '../common/Utils'
-import { customEval, prepareSandboxContext } from '../common/sandbox'
 import { RpcClient } from '@dcl/rpc/dist/types'
 import { PermissionItem } from '@dcl/protocol/out-ts/decentraland/kernel/apis/permissions.gen'
 
 import { DevToolsAdapter } from './client/DevToolsAdapter'
 import type { Scene } from '@dcl/schemas/dist/platform/scene/index'
-import { createRuntime } from './sdk7-runtime'
+import { createModuleRuntime, createWsFetchRuntime } from './sdk7-runtime'
+import { customEvalSdk7 } from './sandbox'
 
 export async function startSceneRuntime(client: RpcClient) {
   const workerName = self.name
@@ -72,15 +72,6 @@ export async function startSceneRuntime(client: RpcClient) {
 
     let updateIntervalMs: number = 1000 / 30
 
-    // create the context for the scene
-    const runtimeExecutionContext = prepareSandboxContext({
-      dcl: undefined,
-      canUseFetch,
-      canUseWebsocket,
-      log: (str) => devToolsAdapter.log(str).catch(devToolsAdapter.error),
-      previewMode: isPreview.isPreview || unsafeAllowed.status
-    })
-
     if (bootstrapData.useFPSThrottling === true) {
       // TODO: setup FPS throttling
       // setupFpsThrottling(dcl, fullData.scene.parcels.map(parseParcelPosition), (newValue) => {
@@ -88,14 +79,19 @@ export async function startSceneRuntime(client: RpcClient) {
       // })
     }
 
-    const sceneModule = createRuntime(runtimeExecutionContext, clientPort, devToolsAdapter)
+    // create the context for the scene
+    const runtimeExecutionContext = Object.create(null)
+
+    createWsFetchRuntime(
+      runtimeExecutionContext,
+      { canUseFetch, canUseWebsocket, previewMode: isPreview.isPreview || unsafeAllowed.status },
+      devToolsAdapter
+    )
+
+    const sceneModule = createModuleRuntime(runtimeExecutionContext, clientPort, devToolsAdapter)
 
     // run the code of the scene
-    await customEval(sourceCode, runtimeExecutionContext)
-
-    if (sceneModule.exports.onStart) {
-      await sceneModule.exports.onStart()
-    }
+    await customEvalSdk7(sourceCode, runtimeExecutionContext, isPreview.isPreview)
 
     if (!sceneModule.exports.onUpdate && !sceneModule.exports.onStart) {
       // there may be cases where onStart is present and onUpdate not for "static-ish" scenes
@@ -106,14 +102,12 @@ export async function startSceneRuntime(client: RpcClient) {
       )
     }
 
+    await sceneModule.runStart()
+
     // finally, start event loop
     if (sceneModule.exports.onUpdate) {
       // first update always use 0.0 as delta time
-      try {
-        await sceneModule.exports.onUpdate(0.0)
-      } catch (e: any) {
-        await devToolsAdapter.error(e)
-      }
+      await sceneModule.runUpdate(0.0)
 
       let start = performance.now()
 
@@ -124,11 +118,7 @@ export async function startSceneRuntime(client: RpcClient) {
 
         const dtSecs = dtMillis / 1000
 
-        try {
-          await sceneModule.exports.onUpdate(dtSecs)
-        } catch (e: any) {
-          await devToolsAdapter.error(e)
-        }
+        await sceneModule.runUpdate(dtSecs)
 
         // wait for next frame
         const ms = Math.max((updateIntervalMs - (performance.now() - start)) | 0, 0)
