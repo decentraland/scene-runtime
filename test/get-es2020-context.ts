@@ -27,14 +27,12 @@ async function evaluate(code: string) {
 }
 
 export async function getQuickJsGlobals() {
-  const [result] = await evaluate('log(Object.getOwnPropertyNames(globalThis))')
+  const [result] = await evaluate('"use math";\nlog(Object.getOwnPropertyNames(globalThis))')
   return result
 }
 
-
-
 export async function namesExistQuickJs(names: string[]) {
-  const [result] = await evaluate(`"use strict";
+  const [result] = await evaluate(`"use math";\n"use strict";
     const missing = []
     const checks = ${JSON.stringify(names)}
     for (const name of checks) {
