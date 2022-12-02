@@ -1,7 +1,7 @@
 /// <reference types="@dcl/posix" />
 
-import { createFetch } from './Fetch'
-import { createWebSocket } from './WebSocket'
+import { createFetch } from '../../common/Fetch'
+import { createWebSocket } from '../../common/WebSocket'
 
 const allowListES5: Array<keyof typeof globalThis> = [
   'eval',
@@ -35,12 +35,6 @@ const allowListES5: Array<keyof typeof globalThis> = [
   'Promise',
   'NaN',
   'Infinity',
-  'Map',
-  'Set',
-  'require',
-  'exports',
-  'module',
-  'console'
 ]
 
 // eslint-disable-next-line @typescript-eslint/ban-types

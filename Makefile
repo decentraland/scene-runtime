@@ -3,10 +3,10 @@ LOCAL_ARG = --local --verbose --diagnostics
 endif
 
 test:
-	node node_modules/.bin/jest --colors --runInBand $(TESTARGS)
+	node --enable-source-maps node_modules/.bin/jest --coverage --colors --runInBand $(TESTARGS)
 
 test-watch:
-	node_modules/.bin/jest --colors --runInBand --watch $(TESTARGS)
+	node --enable-source-maps node_modules/.bin/jest --colors --runInBand --watch $(TESTARGS)
 
 build:
 	rm -rf dist || true

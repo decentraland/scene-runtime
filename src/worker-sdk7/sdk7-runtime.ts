@@ -1,4 +1,6 @@
-import { RpcClientPort } from '@dcl/rpc'
+import type { RpcClientPort } from '@dcl/rpc'
+import { createFetch } from '../common/Fetch'
+import { createWebSocket } from '../common/WebSocket'
 import { LoadableApis } from './client'
 import { DevToolsAdapter } from './client/DevToolsAdapter'
 
@@ -11,9 +13,36 @@ export type SceneInterface = {
 
 export type SDK7Module = {
   readonly exports: Partial<SceneInterface>
+  runStart(): Promise<void>
+  runUpdate(deltaTime: number): Promise<void>
 }
 
-export function createRuntime(runtime: Record<string, any>, clientPort: RpcClientPort, devtools: DevToolsAdapter): SDK7Module {
+export function createWsFetchRuntime(
+  runtime: Record<string, any>,
+  options: { canUseWebsocket: boolean; canUseFetch: boolean; previewMode: boolean },
+  devtools: DevToolsAdapter
+) {
+  const originalFetch = globalThis.fetch
+
+  const restrictedWebSocket = createWebSocket({ ...options, log: devtools.log.bind(devtools) })
+  const restrictedFetch = createFetch({ ...options, originalFetch, log: devtools.log.bind(devtools) })
+
+  Object.defineProperty(runtime, 'WebSocket', {
+    configurable: false,
+    value: restrictedWebSocket
+  })
+
+  Object.defineProperty(runtime, 'fetch', {
+    configurable: false,
+    value: restrictedFetch
+  })
+}
+
+export function createModuleRuntime(
+  runtime: Record<string, any>,
+  clientPort: RpcClientPort,
+  devtools: DevToolsAdapter
+): SDK7Module {
   const exports: Partial<SceneInterface> = {}
 
   const module = { exports }
@@ -55,9 +84,51 @@ export function createRuntime(runtime: Record<string, any>, clientPort: RpcClien
     }
   })
 
+  const setImmediateList: Array<() => Promise<void>> = []
+
+  Object.defineProperty(runtime, 'setImmediate', {
+    configurable: false,
+    value: (fn: () => Promise<void>) => {
+      setImmediateList.push(fn)
+    }
+  })
+
+  async function runSetImmediate(): Promise<void> {
+    if (setImmediateList.length) {
+      for (const fn of setImmediateList) {
+        try {
+          await fn()
+        } catch (err: any) {
+          devtools.error(err)
+        }
+      }
+      setImmediateList.length = 0
+    }
+  }
+
   return {
     get exports() {
       return module.exports
+    },
+    async runStart() {
+      if (module.exports.onStart) {
+        try {
+          await module.exports.onStart()
+        } catch (err: any) {
+          await devtools.error(err)
+        }
+      }
+      await runSetImmediate()
+    },
+    async runUpdate(deltaTime: number) {
+      if (module.exports.onUpdate) {
+        try {
+          await module.exports.onUpdate(deltaTime)
+        } catch (err: any) {
+          await devtools.error(err)
+        }
+      }
+      await runSetImmediate()
     }
   }
 }
