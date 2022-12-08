@@ -65,8 +65,16 @@ const defer: (fn: Function) => void = (Promise.resolve().then as any).bind(Promi
 export async function runWithScope(code: string, context: any) {
   const func = new Function('globalThis', `with (globalThis) {${code}}`)
   const proxy: any = new Proxy(context, {
-    has() {
-      return true
+    has(target, propKey: string | symbol): boolean {
+      if (propKey === 'eval') return true
+      if (propKey === 'globalThis') return true
+      if (propKey === 'global') return true
+      if (propKey === 'undefined') return true
+      if (context[propKey]) return true
+      if (allowListES2020.includes(propKey as any)) {
+        return true
+      }
+      return false
     },
     get(target, propKey, receiver) {
       if (propKey === 'eval') return eval
@@ -102,7 +110,7 @@ export function prepareSdk7SandboxContext(options: {
   const restrictedWebSocket = createWebSocket(options)
   const restrictedFetch = createFetch({ ...options, originalFetch })
 
-  ;(globalThis as any).fetch = restrictedFetch
+    ; (globalThis as any).fetch = restrictedFetch
   globalThis.WebSocket = restrictedWebSocket
 
   return { WebSocket: restrictedWebSocket, fetch: restrictedFetch }

@@ -1,8 +1,12 @@
 {
   "compilerOptions": {
-    "types": ["node", "jest"],
+    "types": [
+      "node",
+      "jest"
+    ],
     "noEmit": true,
-    "allowJs": true
+    "allowJs": true,
+    "sourceMap": true
   },
   "extends": "../tsconfig.json"
 }

@@ -129,7 +129,7 @@ describe('Sandbox', () => {
   })
 
   it('this should be the proxy', async () => {
-    const log = jest.fn().mockImplementation((x) => {})
+    const log = jest.fn().mockImplementation((x) => { })
 
     await customEvalSdk7(example, { console: { log } }, false)
 
@@ -137,7 +137,7 @@ describe('Sandbox', () => {
   })
 
   it('this should be the proxy (eval)', async () => {
-    const log = jest.fn().mockImplementation((x) => {})
+    const log = jest.fn().mockImplementation((x) => { })
 
     await customEvalSdk7(example, { console: { log } }, false)
 
@@ -290,6 +290,29 @@ export function checkExistence(property: string, exists: boolean) {
     })
 
     await customEvalSdk7(`x(${property})`, { x }, true)
+
+    expect(x).toBeCalledTimes(1)
+    if (exists) {
+      expect(that).not.toBeUndefined()
+    } else {
+      expect(that).toBeUndefined()
+    }
+  })
+
+
+  it.only(`in global context ${property} existence (devtool) with global-scope function`, async () => {
+    let that: any = -1
+    const x = jest.fn(($) => {
+      that = $
+    })
+
+    await customEvalSdk7(`
+    function some() {
+      x(${property})
+    }
+    
+    some()
+    `, { x }, true)
 
     expect(x).toBeCalledTimes(1)
     if (exists) {
