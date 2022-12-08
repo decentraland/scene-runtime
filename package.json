@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/decentraland/scene-runtime#readme",
   "dependencies": {
+    "@dcl/sdk": "^7.0.4-3620697800.commit-1ae2333",
     "@types/ws": "^8.5.3",
     "fp-future": "^1.0.1",
     "undici": "^5.11.0",
