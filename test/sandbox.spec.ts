@@ -300,7 +300,7 @@ export function checkExistence(property: string, exists: boolean) {
   })
 
 
-  it.only(`in global context ${property} existence (devtool) with global-scope function`, async () => {
+  it(`in global context ${property} existence (devtool) with global-scope function`, async () => {
     let that: any = -1
     const x = jest.fn(($) => {
       that = $
