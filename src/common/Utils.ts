@@ -29,38 +29,14 @@ export const componentSerializeOpt = {
 export function generatePBObject(classId: number, json: string): string {
   if (classId === TRANSFORM_CLASS_ID) {
     const transform: Transform = JSON.parse(json)
-    if (!componentSerializeOpt.useBinaryTransform) return serializeTransform(transform)
-    else return serializeTransformNoProtobuff(transform)
+    return serializeTransform(transform)
   }
 
   return json
 }
 
+
 function serializeTransform(transform: Transform): string {
-  // Position
-  // If we don't cap these vectors, scenes may trigger a physics breakdown when messaging enormous values
-  pbTransform.position.x = Math.fround(transform.position.x)
-  pbTransform.position.y = Math.fround(transform.position.y)
-  pbTransform.position.z = Math.fround(transform.position.z)
-  capVector(pbTransform.position, VECTOR3_MEMBER_CAP)
-
-  // Rotation
-  pbTransform.rotation.x = transform.rotation.x
-  pbTransform.rotation.y = transform.rotation.y
-  pbTransform.rotation.z = transform.rotation.z
-  pbTransform.rotation.w = transform.rotation.w
-
-  // Scale
-  pbTransform.scale.x = Math.fround(transform.scale.x)
-  pbTransform.scale.y = Math.fround(transform.scale.y)
-  pbTransform.scale.z = Math.fround(transform.scale.z)
-  capVector(pbTransform.scale, VECTOR3_MEMBER_CAP)
-
-  const arrayBuffer: Uint8Array = PBTransform.encode(pbTransform).finish()
-  return btoa(String.fromCharCode(...arrayBuffer))
-}
-
-function serializeTransformNoProtobuff(transform: Transform): string {
   // Position
   // If we don't cap these vectors, scenes may trigger a physics breakdown when messaging enormous values
   const cappedVector = {
