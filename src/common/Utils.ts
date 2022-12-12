@@ -1,5 +1,4 @@
 import { EAType } from "@dcl/protocol/out-ts/decentraland/kernel/apis/engine_api.gen"
-import { PBTransform } from "@dcl/protocol/out-ts/decentraland/renderer/engine_interface.gen"
 
 type Vector3 = Record<"x" | "y" | "z", number>
 type Quaternion = Record<"x" | "y" | "z" | "w", number>
@@ -11,20 +10,11 @@ type Transform = {
 }
 
 const VECTOR3_MEMBER_CAP = 1000000 // Value measured when genesis plaza glitch triggered a physics engine breakdown
-const pbTransform: Transform = {
-  position: { x: 0, y: 0, z: 0 },
-  rotation: { x: 0, y: 0, z: 0, w: 1 },
-  scale: { x: 1, y: 1, z: 1 },
-} as const
 
 const TRANSFORM_CLASS_ID = 1
 
 const transformData: ArrayBuffer = new ArrayBuffer(40)
 const transformView: DataView = new DataView(transformData)
-
-export const componentSerializeOpt = {
-  useBinaryTransform: true,
-}
 
 export function generatePBObject(classId: number, json: string): string {
   if (classId === TRANSFORM_CLASS_ID) {
