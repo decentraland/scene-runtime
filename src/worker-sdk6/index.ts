@@ -2,7 +2,7 @@ import { createRpcClient } from '@dcl/rpc'
 import { WebWorkerTransport } from '@dcl/rpc/dist/transports/WebWorker'
 
 import { LoadableApis } from './client'
-import { componentSerializeOpt, initMessagesFinished, numberToIdStore, resolveMapping } from '../common/Utils'
+import { initMessagesFinished, numberToIdStore, resolveMapping } from '../common/Utils'
 import { customEval, prepareSandboxContext } from './runtime/sandbox'
 import { RpcClient } from '@dcl/rpc/dist/types'
 import { PermissionItem } from '@dcl/protocol/out-ts/decentraland/kernel/apis/permissions.gen'
@@ -55,8 +55,6 @@ export async function startSceneRuntime(client: RpcClient) {
   const fullData: Scene = JSON.parse(bootstrapData.entity?.metadataJson || '{}')
   const isPreview = await EnvironmentApi.isPreviewMode({})
   const unsafeAllowed = await EnvironmentApi.areUnsafeRequestAllowed({})
-
-  const explorerConfiguration = await EnvironmentApi.getExplorerConfiguration({})
 
   if (!fullData || !fullData.main) {
     throw new Error(`No boostrap data`)
