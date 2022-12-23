@@ -1,5 +1,5 @@
 
-import { getQuickJS } from "quickjs-emscripten"
+import { getQuickJS } from "@dcl/quickjs-emscripten"
 import future from 'fp-future'
 
 async function evaluate(code: string) {

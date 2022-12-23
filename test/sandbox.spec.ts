@@ -376,6 +376,6 @@ describe('es2020 globals against quickjs', () => {
     const missing = await namesExistQuickJs(allowListES2020)
 
     // the following functions are not present in QuickJS-emscripten
-    expect(missing).toEqual(['BigInt', 'BigInt64Array', 'BigUint64Array'])
+    expect(missing).toEqual([])
   })
 })
