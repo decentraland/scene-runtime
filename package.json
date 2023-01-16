@@ -24,9 +24,9 @@
     "ws": "^8.9.0"
   },
   "devDependencies": {
-    "@dcl/quickjs-emscripten": "^0.21.0-3678929406.commit-ea3d5d7",
     "@dcl/posix": "^1.0.4",
-    "@dcl/protocol": "https://sdk-team-cdn.decentraland.org/@dcl/protocol/branch//dcl-protocol-1.0.0-3833446623.commit-95e845b.tgz",
+    "@dcl/protocol": "https://sdk-team-cdn.decentraland.org/@dcl/protocol/branch//dcl-protocol-1.0.0-3933372241.commit-d585f2b.tgz",
+    "@dcl/quickjs-emscripten": "^0.21.0-3678929406.commit-ea3d5d7",
     "@dcl/rpc": "^1.0.4-20221013135015.commit-3725aeb",
     "@dcl/schemas": "^5.21.1",
     "@types/jest": "^29.1.2",
