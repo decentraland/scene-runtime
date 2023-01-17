@@ -4,6 +4,7 @@ import { ParcelIdentityServiceDefinition } from '@dcl/protocol/out-ts/decentrala
 import { PlayersServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/players.gen'
 import { PortableExperiencesServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/portable_experiences.gen'
 import { RestrictedActionsServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/restricted_actions.gen'
+import { RuntimeServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/runtime.gen'
 import { UserActionModuleServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/user_action_module.gen'
 import { UserIdentityServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/user_identity.gen'
 import { SignedFetchServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/signed_fetch.gen'
@@ -70,6 +71,12 @@ export const LoadableApis = {
     return codegen.loadService<Context, RestrictedActionsServiceDefinition>(
       clientPort,
       RestrictedActionsServiceDefinition
+    )
+  },
+  Runtime<Context extends {}>(clientPort: RpcClientPort) {
+    return codegen.loadService<Context, RuntimeServiceDefinition>(
+      clientPort,
+      RuntimeServiceDefinition
     )
   },
   // TODO: Review final API before public launch

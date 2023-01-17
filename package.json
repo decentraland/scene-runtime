@@ -24,9 +24,9 @@
     "ws": "^8.9.0"
   },
   "devDependencies": {
-    "@dcl/quickjs-emscripten": "^0.21.0-3678929406.commit-ea3d5d7",
     "@dcl/posix": "^1.0.4",
-    "@dcl/protocol": "^1.0.0-3766287015.commit-7d88411",
+    "@dcl/protocol": "^1.0.0-3939040004.commit-2c2721f",
+    "@dcl/quickjs-emscripten": "^0.21.0-3678929406.commit-ea3d5d7",
     "@dcl/rpc": "^1.0.4-20221013135015.commit-3725aeb",
     "@dcl/schemas": "^6.3.0",
     "@types/jest": "^29.1.2",
