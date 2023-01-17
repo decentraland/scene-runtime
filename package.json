@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@dcl/posix": "^1.0.4",
-    "@dcl/protocol": "https://sdk-team-cdn.decentraland.org/@dcl/protocol/branch//dcl-protocol-1.0.0-3933372241.commit-d585f2b.tgz",
+    "@dcl/protocol": "^1.0.0-3939040004.commit-2c2721f",
     "@dcl/quickjs-emscripten": "^0.21.0-3678929406.commit-ea3d5d7",
     "@dcl/rpc": "^1.0.4-20221013135015.commit-3725aeb",
     "@dcl/schemas": "^5.21.1",
