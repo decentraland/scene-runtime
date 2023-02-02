@@ -14,6 +14,7 @@ import { EthereumControllerServiceDefinition } from '@dcl/protocol/out-ts/decent
 import { DevToolsServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/dev_tools.gen'
 import { EngineApiServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/engine_api.gen'
 import { PermissionsServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/permissions.gen'
+import { SceneServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/scene.gen'
 import { createLegacyWeb3Provider } from './Web3Provider'
 
 export const LoadableApis = {
@@ -89,6 +90,9 @@ export const LoadableApis = {
   // TODO: Review final API before public launch
   UserIdentity<Context extends {}>(clientPort: RpcClientPort) {
     return codegen.loadService<Context, UserIdentityServiceDefinition>(clientPort, UserIdentityServiceDefinition)
+  },
+  Scene<Context extends {}>(clientPort: RpcClientPort) {
+    return codegen.loadService<Context, SceneServiceDefinition>(clientPort, SceneServiceDefinition)
   },
 
   ['web3-provider']: createLegacyWeb3Provider
