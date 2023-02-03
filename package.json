@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@dcl/posix": "^1.0.4",
-    "@dcl/protocol": "^1.0.0-4009547712.commit-472ea24",
+    "@dcl/protocol": "^1.0.0-4085628047.commit-0f6384e",
     "@dcl/quickjs-emscripten": "^0.21.0-3678929406.commit-ea3d5d7",
     "@dcl/rpc": "^1.0.4-20221013135015.commit-3725aeb",
     "@dcl/schemas": "^6.3.0",
