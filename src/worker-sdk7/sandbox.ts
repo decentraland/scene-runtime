@@ -73,7 +73,7 @@ export async function runWithScope(code: string, context: any) {
       if (propKey === 'globalThis') return proxy
       if (propKey === 'global') return proxy
       if (propKey === 'undefined') return undefined
-      if (context[propKey]) return context[propKey]
+      if (context[propKey] !== undefined) return context[propKey]
       if (allowListES2020.includes(propKey as any)) {
         return (globalThis as any)[propKey]
       }

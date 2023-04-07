@@ -15,7 +15,7 @@ import { DevToolsServiceDefinition } from '@dcl/protocol/out-ts/decentraland/ker
 import { EngineApiServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/engine_api.gen'
 import { PermissionsServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/permissions.gen'
 import { SceneServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/scene.gen'
-import { createLegacyWeb3Provider } from './Web3Provider'
+import { TestingServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/testing.gen'
 
 export const LoadableApis = {
   // TODO: Review final API before public launch
@@ -80,6 +80,12 @@ export const LoadableApis = {
       RuntimeServiceDefinition
     )
   },
+  Testing<Context extends {}>(clientPort: RpcClientPort) {
+    return codegen.loadService<Context, TestingServiceDefinition>(
+      clientPort,
+      TestingServiceDefinition
+    )
+  },
   // TODO: Review final API before public launch
   UserActionModule<Context extends {}>(clientPort: RpcClientPort) {
     return codegen.loadService<Context, UserActionModuleServiceDefinition>(
@@ -94,8 +100,6 @@ export const LoadableApis = {
   Scene<Context extends {}>(clientPort: RpcClientPort) {
     return codegen.loadService<Context, SceneServiceDefinition>(clientPort, SceneServiceDefinition)
   },
-
-  ['web3-provider']: createLegacyWeb3Provider
 }
 
 export type ILoadedModules<T> = {

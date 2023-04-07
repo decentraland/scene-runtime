@@ -46,6 +46,54 @@ describe('Sandbox', () => {
     expect(stack).toContain('at testFunctionName (eval at')
   })
 
+  it('compiled code scopes work for "falsy" variables', async () => {
+    const src = `
+    var __defProp = Object.defineProperty;
+    var __export = (target, all) => {
+      for (var name in all)
+        __defProp(target, name, { get: all[name], enumerable: true });
+    };
+    var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames = Object.getOwnPropertyNames;
+    var __hasOwnProp = Object.prototype.hasOwnProperty;
+    var __toCommonJS = (mod2) => __copyProps(__defProp({}, "__esModule", { value: true }), mod2);
+    var __copyProps = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames(from))
+          if (!__hasOwnProp.call(to, key) && key !== except)
+            __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var src_exports = {};
+    __export(src_exports, {
+      onStart: () => onStart,
+      onUpdate: () => onUpdate,
+    });
+    module.exports = __toCommonJS(src_exports);
+
+    var dt = 0;
+    var onUpdate = () => { log(++dt) };
+    
+    `.trim()
+
+    {
+      const event = jest.fn()
+      const log = jest.fn()
+      const devToolsAdapter = new DevToolsAdapter({ event })
+      const context = Object.create(null)
+      context.log = log
+      const sceneModule = createModuleRuntime(context, null as any, devToolsAdapter)
+
+      await customEvalSdk7(src, context, false)
+      await sceneModule.exports.onUpdate!(0.0)
+      expect(log).toBeCalledWith(1)
+      await sceneModule.exports.onUpdate!(0.1)
+      expect(log).toBeCalledWith(2)
+    }
+  })
+
+
   it('runWithScope returns values consistently', async () => {
     const symbol = Symbol('123')
     expect(await runWithScope('return symbol', { symbol })).toEqual(symbol)
@@ -129,7 +177,7 @@ describe('Sandbox', () => {
   })
 
   it('this should be the proxy', async () => {
-    const log = jest.fn().mockImplementation((x) => {})
+    const log = jest.fn().mockImplementation((x) => { })
 
     await customEvalSdk7(example, { console: { log } }, false)
 
@@ -137,7 +185,7 @@ describe('Sandbox', () => {
   })
 
   it('this should be the proxy (eval)', async () => {
-    const log = jest.fn().mockImplementation((x) => {})
+    const log = jest.fn().mockImplementation((x) => { })
 
     await customEvalSdk7(example, { console: { log } }, false)
 
