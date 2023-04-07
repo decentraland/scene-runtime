@@ -86,10 +86,11 @@ describe('Sandbox', () => {
       const sceneModule = createModuleRuntime(context, null as any, devToolsAdapter)
 
       await customEvalSdk7(src, context, false)
+
       await sceneModule.exports.onUpdate!(0.0)
-      expect(log).toBeCalledWith(1)
+      expect(log).toBeCalledWith(1) // evaluate new result
       await sceneModule.exports.onUpdate!(0.1)
-      expect(log).toBeCalledWith(2)
+      expect(log).toBeCalledWith(2) // global scalar vars should be mutable with ++
     }
   })
 
