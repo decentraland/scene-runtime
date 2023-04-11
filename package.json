@@ -28,7 +28,7 @@
     "@dcl/rpc": "^1.1.2",
     "@dcl/schemas": "^6.15.0",
     "@types/jest": "^29.5.0",
-    "devtools-protocol": "^0.0.1090008",
+    "devtools-protocol": "^0.0.1126404",
     "estrella": "^1.4.1",
     "jest": "^29.5.0",
     "p-queue": "^6.6.2",
