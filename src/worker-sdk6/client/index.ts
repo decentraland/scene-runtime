@@ -25,7 +25,7 @@ export const LoadableApis = {
   EthereumController: EthereumControllerServiceClient.create,
   ParcelIdentity: ParcelIdentityServiceClient.create,
   Players: PlayersServiceClient.create,
-  PortableExperience: PortableExperienceServiceClient.create,
+  PortableExperiences: PortableExperienceServiceClient.create,
   RestrictedActions: RestrictedActionsServiceClient.create,
   UserActionModule: UserActionModuleServiceClient.create,
   UserIdentity: UserIdentityServiceClient.create,
@@ -37,7 +37,7 @@ export const LoadableApis = {
   LegacyEthereumController: EthereumControllerServiceClient.createLegacy,
   LegacyParcelIdentity: ParcelIdentityServiceClient.createLegacy,
   LegacyPlayers: PlayersServiceClient.createLegacy,
-  LegacyPortableExperience: PortableExperienceServiceClient.createLegacy,
+  LegacyPortableExperiences: PortableExperienceServiceClient.createLegacy,
 
   // TODO: validate which of the following is actually used.
   LegacyRestrictedActions: RestrictedActionsServiceClient.createLegacy,
