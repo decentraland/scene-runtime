@@ -1,18 +1,19 @@
 import { createRpcClient } from '@dcl/rpc'
 import { WebWorkerTransport } from '@dcl/rpc/dist/transports/WebWorker'
 
-import { LoadableApis } from './client'
-import { initMessagesFinished, numberToIdStore, resolveMapping } from '../common/Utils'
-import { customEval, prepareSandboxContext } from './runtime/sandbox'
-import { RpcClient } from '@dcl/rpc/dist/types'
 import { PermissionItem } from '@dcl/protocol/out-ts/decentraland/kernel/apis/permissions.gen'
+import { RpcClient } from '@dcl/rpc/dist/types'
+import { initMessagesFinished, numberToIdStore, resolveMapping } from '../common/Utils'
+import { LoadableApis } from './client'
+import { customEval, prepareSandboxContext } from './runtime/sandbox'
 
 import { createDecentralandInterface, DecentralandInterfaceOptions } from './runtime/DecentralandInterface'
 import { setupFpsThrottling } from './runtime/SetupFpsThrottling'
 
-import { DevToolsAdapter } from './runtime/DevToolsAdapter'
-import { RuntimeEventCallback, RuntimeEvent, SceneRuntimeEventState, EventDataToRuntimeEvent } from './runtime/Events'
 import type { Scene } from '@dcl/schemas/dist/platform/scene/index'
+import { addMetricData, reportMetrics } from './metrics'
+import { DevToolsAdapter } from './runtime/DevToolsAdapter'
+import { EventDataToRuntimeEvent, RuntimeEvent, RuntimeEventCallback, SceneRuntimeEventState } from './runtime/Events'
 
 /**
  * Converts a string position "-1,5" => { x: -1, y: 5 }
@@ -53,8 +54,14 @@ export async function startSceneRuntime(client: RpcClient) {
 
   const bootstrapData = await EnvironmentApi.getBootstrapData({})
   const fullData: Scene = JSON.parse(bootstrapData.entity?.metadataJson || '{}')
-  const isPreview = await EnvironmentApi.isPreviewMode({})
-  const unsafeAllowed = await EnvironmentApi.areUnsafeRequestAllowed({})
+
+  const [isPreview, unsafeAllowed, explorerConfiguration] = await Promise.all([
+     EnvironmentApi.isPreviewMode({}),
+     EnvironmentApi.areUnsafeRequestAllowed({}),
+     EnvironmentApi.getExplorerConfiguration({})
+  ])
+
+  const logMetrics = explorerConfiguration.configurations['experimental-metrics'] !== undefined
 
   if (!fullData || !fullData.main) {
     throw new Error(`No boostrap data`)
@@ -146,7 +153,7 @@ export async function startSceneRuntime(client: RpcClient) {
 
       for (const trigger of onUpdateFunctions) {
         try {
-          await trigger(dtSecs)
+          trigger(dtSecs)
         } catch (e: any) {
           devToolsAdapter.error(e)
         }
@@ -156,6 +163,53 @@ export async function startSceneRuntime(client: RpcClient) {
         await sendBatchAndProcessEvents()
       } catch (error: any) {
         devToolsAdapter.error(error)
+      }
+
+      await reschedule()
+    }
+  }
+
+  
+  async function mainLoopWithMetrics() {
+    let ignoreNextTick
+    let t1: number, t2: number, messagesCount: number = 0, totalJsonLength = 0
+    while (true) {
+      const now = performance.now()
+      const dtMillis = now - start
+      start = now
+
+      const dtSecs = dtMillis / 1000
+
+      for (const trigger of onUpdateFunctions) {
+        try {
+          trigger(dtSecs)
+        } catch (e: any) {
+          devToolsAdapter.error(e)
+        }
+      }
+
+      t1 = performance.now()
+      messagesCount = batchEvents.events.length
+      totalJsonLength = 0
+      for (const action of batchEvents.events) {
+        totalJsonLength += action.payload?.componentUpdated?.json.length || action.payload?.updateEntityComponent?.json.length || 0
+      }
+
+      try {
+        await sendBatchAndProcessEvents()
+      } catch (error: any) {
+        devToolsAdapter.error(error)
+      }
+
+      t2 = performance.now()
+      // returns true if it's just filled
+      if (!ignoreNextTick) {
+        if (addMetricData(now, t1, t2, dtMillis, messagesCount, totalJsonLength)) {
+          reportMetrics(devToolsAdapter)
+          ignoreNextTick = true
+        }
+      } else {
+        ignoreNextTick = false
       }
 
       await reschedule()
@@ -215,7 +269,11 @@ export async function startSceneRuntime(client: RpcClient) {
   } while (!didStart && (await sleep(100)))
 
   // finally, start event loop
-  await mainLoop()
+  if (logMetrics) {
+    await mainLoopWithMetrics()
+  } else {
+    await mainLoop()
+  }
 
   // shutdown
 }
