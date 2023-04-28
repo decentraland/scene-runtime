@@ -2,23 +2,20 @@ import { createRpcClient } from '@dcl/rpc'
 import { WebWorkerTransport } from '@dcl/rpc/dist/transports/WebWorker'
 
 import { LoadableApis } from './client'
-import { resolveMapping } from '../common/Utils'
 import { RpcClient } from '@dcl/rpc/dist/types'
 import { PermissionItem } from '@dcl/protocol/out-ts/decentraland/kernel/apis/permissions.gen'
 
-import { DevToolsAdapter } from './client/DevToolsAdapter'
 import type { Scene } from '@dcl/schemas/dist/platform/scene/index'
-import { createModuleRuntime, createWsFetchRuntime } from './sdk7-runtime'
+import { ConsoleType, createModuleRuntime, createWsFetchRuntime } from './sdk7-runtime'
 import { customEvalSdk7 } from './sandbox'
 
 export async function startSceneRuntime(client: RpcClient) {
   const workerName = self.name
   const clientPort = await client.createPort(`scene-${workerName}`)
 
-  const [EnvironmentApi, Permissions, DevTools] = await Promise.all([
-    LoadableApis.EnvironmentApi(clientPort),
+  const [Permissions, Runtime] = await Promise.all([
     LoadableApis.Permissions(clientPort),
-    LoadableApis.DevTools(clientPort)
+    LoadableApis.Runtime(clientPort)
   ])
 
   const [canUseWebsocket, canUseFetch] = (
@@ -27,44 +24,39 @@ export async function startSceneRuntime(client: RpcClient) {
     })
   ).hasManyPermission
 
-  const devToolsAdapter = new DevToolsAdapter(DevTools)
+  const bootstrapData = await Runtime.getSceneInformation({})
+  const realm = await Runtime.getRealm({})
+  const fullData: Scene = JSON.parse(bootstrapData.metadataJson || '{}')
+  const isPreview = realm.realmInfo?.isPreview || false
 
-  const bootstrapData = await EnvironmentApi.getBootstrapData({})
-  const fullData: Scene = JSON.parse(bootstrapData.entity?.metadataJson || '{}')
-  const isPreview = await EnvironmentApi.isPreviewMode({})
-  const unsafeAllowed = await EnvironmentApi.areUnsafeRequestAllowed({})
+  const loggerName = `[Scene at ${fullData.scene.base}]`
+
+  const runtimeConsole: ConsoleType = {
+    log(...args: any[]){
+      console.log(loggerName, ...args)
+    },
+    error(...args: any[]){
+      console.error(loggerName, ...args)
+    }
+  }
 
   try {
     await run()
   } catch (err) {
-    // TODO: await EngineApi.sendBatch({ actions: [initMessagesFinished()] })
-
-    await devToolsAdapter.error(err as any)
+    console.error(err as any)
     clientPort.close()
     return
   }
 
+  // this function retrieves the source code of the scene
   async function getSceneSource() {
     if (!fullData || !fullData.main) {
       throw new Error(`No boostrap data`)
     }
 
-    const mappingName = fullData.main
-    const mapping = bootstrapData.entity?.content.find(($) => $.file === mappingName)
-
-    if (!mapping) {
-      throw new Error(`SDK: Error while loading scene. Main file missing.`)
-    }
-
-    const url = resolveMapping(mapping.hash, mappingName, bootstrapData.baseUrl)
-    const codeRequest = await fetch(url)
-
-    if (!codeRequest.ok) {
-      throw new Error(
-        `SDK: Error while loading ${url} (${mappingName} -> ${mapping?.file}:${mapping?.hash}) the mapping was not found`
-      )
-    }
-    return codeRequest.text()
+    const response = await Runtime.readFile({ fileName: fullData.main })
+    const textDecoder = new TextDecoder()
+    return textDecoder.decode(response.content)
   }
 
   async function run() {
@@ -72,30 +64,23 @@ export async function startSceneRuntime(client: RpcClient) {
 
     let updateIntervalMs: number = 1000 / 30
 
-    if (bootstrapData.useFPSThrottling === true) {
-      // TODO: setup FPS throttling
-      // setupFpsThrottling(dcl, fullData.scene.parcels.map(parseParcelPosition), (newValue) => {
-      //   updateIntervalMs = newValue
-      // })
-    }
-
     // create the context for the scene
     const runtimeExecutionContext = Object.create(null)
 
     createWsFetchRuntime(
       runtimeExecutionContext,
-      { canUseFetch, canUseWebsocket, previewMode: isPreview.isPreview || unsafeAllowed.status },
-      devToolsAdapter
+      { canUseFetch, canUseWebsocket, previewMode: isPreview },
+      runtimeConsole
     )
 
-    const sceneModule = createModuleRuntime(runtimeExecutionContext, clientPort, devToolsAdapter)
+    const sceneModule = createModuleRuntime(runtimeExecutionContext, clientPort, runtimeConsole)
 
     // run the code of the scene
-    await customEvalSdk7(sourceCode, runtimeExecutionContext, isPreview.isPreview)
+    await customEvalSdk7(sourceCode, runtimeExecutionContext, isPreview)
 
     if (!sceneModule.exports.onUpdate && !sceneModule.exports.onStart) {
       // there may be cases where onStart is present and onUpdate not for "static-ish" scenes
-      await devToolsAdapter.error(
+      runtimeConsole.error(
         new Error(
           '🚨🚨🚨🚨🚨 Your scene does not export an onUpdate function. Documentation: https://dcl.gg/sdk/missing-onUpdate'
         )
