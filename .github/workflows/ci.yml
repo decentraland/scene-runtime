@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       dcl_runtime_s3_bucket_key: ${{ steps.publish_dcl_runtime.outputs.s3-bucket-key }}
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@master
       - name: Use Node.js 18.x
