@@ -61,7 +61,7 @@ export const LoadableApis = {
     return codegen.loadService<Context, PlayersServiceDefinition>(clientPort, PlayersServiceDefinition)
   },
   // TODO: Review final API before public launch
-  PortableExperience<Context extends {}>(clientPort: RpcClientPort) {
+  PortableExperiences<Context extends {}>(clientPort: RpcClientPort) {
     return codegen.loadService<Context, PortableExperiencesServiceDefinition>(
       clientPort,
       PortableExperiencesServiceDefinition
