@@ -1,15 +1,12 @@
 import { LoadableApis } from '../client'
-import { componentNameRE, generatePBObject, getIdAsNumber } from '../../common/Utils'
+import { componentNameRE, getIdAsNumber } from '../../common/Utils'
 import { RpcClientPort } from '@dcl/rpc/dist/types'
 import { RuntimeEventCallback } from './Events'
-import {
-  EAType,
-  EngineApiServiceDefinition,
-  EntityAction,
-  queryTypeFromJSON
-} from '@dcl/protocol/out-ts/decentraland/kernel/apis/engine_api.gen'
 import { SceneRuntimeEventState } from './Events'
 import { RpcClientModule } from '@dcl/rpc/dist/codegen'
+import { ComponentBodyPayload, EntityAction } from '@dcl/protocol/out-ts/decentraland/sdk/ecs6/engine_interface_ecs6.gen'
+import { EngineApiServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/engine_api.gen'
+import * as components from '@dcl/protocol/out-ts/decentraland/sdk/ecs6/components_ecs6.gen'
 
 export interface DecentralandInterfaceOptions {
   onLog: (...args: any[]) => void
@@ -27,10 +24,125 @@ export interface DecentralandInterfaceOptions {
 export type GenericRpcModule = Record<string, (...args: any) => Promise<unknown>>
 type ComposedRpcModule = ModuleDescriptor & { __INTERNAL_UNSAFE_loadedModule: GenericRpcModule }
 
+export enum CLASS_ID {
+  TRANSFORM = 1,
+  UUID_CALLBACK = 8,
+  BOX_SHAPE = 16,
+  SPHERE_SHAPE = 17,
+  PLANE_SHAPE = 18,
+  CONE_SHAPE = 19,
+  CYLINDER_SHAPE = 20,
+  TEXT_SHAPE = 21,
+
+  NFT_SHAPE = 22,
+  UI_WORLD_SPACE_SHAPE = 23, // missing
+  UI_SCREEN_SPACE_SHAPE = 24, // missing
+  UI_CONTAINER_RECT = 25,
+  UI_CONTAINER_STACK = 26,
+  UI_TEXT_SHAPE = 27,
+  UI_INPUT_TEXT_SHAPE = 28,
+  UI_IMAGE_SHAPE = 29,
+  UI_SLIDER_SHAPE = 30,
+  CIRCLE_SHAPE = 31,
+  BILLBOARD = 32,
+
+  ANIMATION = 33,
+  FONT = 34,
+
+  UI_FULLSCREEN_SHAPE = 40, // missing
+  UI_BUTTON_SHAPE = 41,
+
+  GLTF_SHAPE = 54,
+  OBJ_SHAPE = 55,
+  AVATAR_SHAPE = 56,
+
+  BASIC_MATERIAL = 64,
+  PBR_MATERIAL = 65,
+
+  HIGHLIGHT_ENTITY = 66, // missing
+
+  /** @deprecated Sound has been deprecataed */
+  SOUND = 67,  // missing
+  TEXTURE = 68,
+
+  VIDEO_CLIP = 70,
+  VIDEO_TEXTURE = 71,
+
+  AVATAR_TEXTURE = 72,
+
+  AUDIO_CLIP = 200,
+  AUDIO_SOURCE = 201,
+  AUDIO_STREAM = 202,
+  GIZMOS = 203,
+  SMART_ITEM = 204,  // missing
+  AVATAR_MODIFIER_AREA = 205,
+  AVATAR_ATTACH = 206,
+  CAMERA_MODE_AREA = 207,
+
+  // For state sync only
+  NAME = 300, // missing
+  LOCKED_ON_EDIT = 301, // missing
+  VISIBLE_ON_EDIT = 302 // missing
+}
+
+const classIdToKey: Map<number, { key: string; component: string}> = new Map([
+  [CLASS_ID.AVATAR_MODIFIER_AREA, {key:'avatarModifierArea', component: 'ECS6ComponentAvatarModifierArea'}],
+  [CLASS_ID.TRANSFORM, {key:'transform', component: 'ECS6ComponentTransform'}],
+  [CLASS_ID.AVATAR_ATTACH, {key:'attachToAvatar', component: 'ECS6ComponentAttachToAvatar'}],
+  [CLASS_ID.BILLBOARD, {key:'billboard', component: 'ECS6ComponentBillboard'}],
+  [CLASS_ID.BOX_SHAPE, {key:'boxShape', component: 'ECS6ComponentBoxShape'}],
+  [CLASS_ID.SPHERE_SHAPE, {key:'sphereShape', component: 'ECS6ComponentSphereShape'}],
+  [CLASS_ID.CIRCLE_SHAPE, {key:'circleShape', component: 'ECS6ComponentCircleShape'}],
+  [CLASS_ID.PLANE_SHAPE, {key:'planeShape', component: 'ECS6ComponentPlaneShape'}],
+  [CLASS_ID.CONE_SHAPE, {key:'coneShape', component: 'ECS6ComponentConeShape'}],
+  [CLASS_ID.CYLINDER_SHAPE, {key:'cylinderShape', component: 'ECS6ComponentCylinderShape'}],
+  [CLASS_ID.GLTF_SHAPE, {key:'gltfShape', component: 'ECS6ComponentGltfShape'}],
+  [CLASS_ID.NFT_SHAPE, {key:'nftShape', component: 'ECS6ComponentNftShape'}],
+  [CLASS_ID.TEXTURE, {key:'texture', component: 'ECS6ComponentTexture'}],
+  [CLASS_ID.ANIMATION, {key:'animator', component: 'ECS6ComponentAnimator'}],
+  [CLASS_ID.OBJ_SHAPE, {key:'objShape', component: 'ECS6ComponentObjShape'}],
+  [CLASS_ID.FONT, {key:'font', component: 'ECS6ComponentFont'}],
+  [CLASS_ID.TEXT_SHAPE, {key:'textShape', component: 'ECS6ComponentTextShape'}],
+  [CLASS_ID.PBR_MATERIAL, {key:'material', component: 'ECS6ComponentMaterial'}],
+  [CLASS_ID.BASIC_MATERIAL, {key:'basicMaterial', component: 'ECS6ComponentBasicMaterial'}],
+  [CLASS_ID.UUID_CALLBACK, {key:'uuidCallback', component: 'ECS6ComponentUuidCallback'}],
+  [CLASS_ID.SMART_ITEM, {key:'smartItem', component: 'ECS6ComponentSmartItem'}],
+  [CLASS_ID.VIDEO_CLIP, {key:'videoClip', component: 'ECS6ComponentVideoClip'}],
+  [CLASS_ID.VIDEO_TEXTURE, {key:'videoTexture', component: 'ECS6ComponentVideoTexture'}],
+  [CLASS_ID.CAMERA_MODE_AREA, {key:'cameraModeArea', component: 'ECS6ComponentCameraModeArea'}],
+  [CLASS_ID.AVATAR_TEXTURE, {key:'avatarTexture', component: 'ECS6ComponentAvatarTexture'}],
+  [CLASS_ID.AUDIO_CLIP, {key:'audioClip', component: 'ECS6ComponentAudioClip'}],
+  [CLASS_ID.AUDIO_SOURCE, {key:'audioSource', component: 'ECS6ComponentAudioSource'}],
+  [CLASS_ID.AUDIO_STREAM, {key:'audioStream', component: 'ECS6ComponentAudioStream'}],
+  [CLASS_ID.AVATAR_SHAPE, {key:'avatarShape', component: 'ECS6ComponentAvatarShape'}],
+  [CLASS_ID.GIZMOS, {key:'gizmos', component: 'ECS6ComponentGizmos'}],
+  [CLASS_ID.UI_CONTAINER_RECT, {key:'uiContainerRect', component: 'ECS6ComponentUiContainerRect'}],
+  [CLASS_ID.UI_CONTAINER_STACK, {key:'uiContainerStack', component: 'ECS6ComponentUiContainerStack'}],
+  [CLASS_ID.UI_BUTTON_SHAPE, {key:'uiButton', component: 'ECS6ComponentUiButton'}],
+  [CLASS_ID.UI_TEXT_SHAPE, {key:'uiText', component: 'ECS6ComponentUiText'}],
+  [CLASS_ID.UI_INPUT_TEXT_SHAPE, {key:'uiInputText', component: 'ECS6ComponentUiInputText'}],
+  [CLASS_ID.UI_IMAGE_SHAPE, {key:'uiImage', component: 'ECS6ComponentUiImage'}],
+  [CLASS_ID.UI_SLIDER_SHAPE, {key:'uiScrollRect', component: 'ECS6ComponentUiScrollRect'}],
+  [CLASS_ID.UI_WORLD_SPACE_SHAPE, { key : 'uiWorldSpaceShape', component: 'ECS6ComponentUiWorldSpaceShape'}],
+  [CLASS_ID.UI_SCREEN_SPACE_SHAPE, { key : 'uiScreenSpaceShape', component: 'ECS6ComponentUiScreenSpaceShape'}],
+  [CLASS_ID.UI_FULLSCREEN_SHAPE, { key : 'uiFullscreenShape', component: 'ECS6ComponentUiFullscreenShape'}]
+])
+
+function getValue(classId: number, json: string, onLog: (...args: any[]) => void) {
+  const component = classIdToKey.get(classId)
+  if (component == null) {
+    onLog(`SceneRuntime getValue fails with classId ${classId}`, { json } )
+    return undefined
+  }
+  const pbValue = (components as any)[component.component].fromJSON(JSON.parse(json))
+  return { payload: {$case: component.key, [component.key]: pbValue }}  as ComponentBodyPayload
+}
+
 export function createDecentralandInterface(options: DecentralandInterfaceOptions) {
   const { batchEvents, onError, onLog, sceneId, onEventFunctions, clientPort, eventState } = options
 
   const sceneLoadedModules: Record<string, ComposedRpcModule> = {}
+  const componentIdClassIdMap: Map<string, number> = new Map()
 
   const dcl: DecentralandInterface = {
     DEBUG: true,
@@ -54,9 +166,8 @@ export function createDecentralandInterface(options: DecentralandInterfaceOption
 
       if (eventState.allowOpenExternalUrl) {
         batchEvents.events.push({
-          type: EAType.EAT_OPEN_EXTERNAL_URL,
           tag: '',
-          payload: { openExternalUrl: { url } }
+          payload: { payload: { $case: 'openExternalUrl', openExternalUrl: { url } } }
         })
       } else {
         this.error('openExternalUrl can only be used inside a pointerEvent')
@@ -73,9 +184,8 @@ export function createDecentralandInterface(options: DecentralandInterfaceOption
         }
 
         batchEvents.events.push({
-          type: EAType.EAT_OPEN_NFT_DIALOG,
           tag: '',
-          payload: { openNftDialog: { assetContractAddress, tokenId, comment: comment || '' } }
+          payload: { payload: { $case: 'openNftDialog', openNftDialog: { assetContractAddress, tokenId, comment: comment || '' } } }
         })
       } else {
         this.error('openNFTDialog can only be used inside a pointerEvent')
@@ -88,15 +198,13 @@ export function createDecentralandInterface(options: DecentralandInterfaceOption
         return
       }
       batchEvents.events.push({
-        type: EAType.EAT_CREATE_ENTITY,
-        payload: { createEntity: { id: entityId } }
+        payload: { payload: { $case: 'createEntity', createEntity: { id: entityId } } }
       })
     },
 
     removeEntity(entityId: string) {
       batchEvents.events.push({
-        type: EAType.EAT_REMOVE_ENTITY,
-        payload: { removeEntity: { id: entityId } }
+        payload: { payload: { $case: 'removeEntity', removeEntity: { id: entityId } } }
       })
     },
 
@@ -127,14 +235,15 @@ export function createDecentralandInterface(options: DecentralandInterfaceOption
 
       if (componentNameRE.test(componentName)) {
         batchEvents.events.push({
-          type: EAType.EAT_UPDATE_ENTITY_COMPONENT,
           tag: sceneId + '_' + entityId + '_' + classId,
           payload: {
-            updateEntityComponent: {
-              entityId,
-              classId,
-              name: componentName.replace(componentNameRE, ''),
-              json: generatePBObject(classId, json)
+            payload: {
+              $case: 'updateEntityComponent', updateEntityComponent: {
+                entityId,
+                classId,
+                name: componentName.replace(componentNameRE, ''),
+                componentData: getValue(classId, json, onLog)
+              }
             }
           }
         })
@@ -145,13 +254,14 @@ export function createDecentralandInterface(options: DecentralandInterfaceOption
     attachEntityComponent(entityId: string, componentName: string, id: string): void {
       if (componentNameRE.test(componentName)) {
         batchEvents.events.push({
-          type: EAType.EAT_ATTACH_ENTITY_COMPONENT,
           tag: entityId,
           payload: {
-            attachEntityComponent: {
-              entityId,
-              name: componentName.replace(componentNameRE, ''),
-              id
+            payload: {
+              $case: 'attachEntityComponent', attachEntityComponent: {
+                entityId,
+                name: componentName.replace(componentNameRE, ''),
+                id
+              }
             }
           }
         })
@@ -162,12 +272,13 @@ export function createDecentralandInterface(options: DecentralandInterfaceOption
     removeEntityComponent(entityId: string, componentName: string): void {
       if (componentNameRE.test(componentName)) {
         batchEvents.events.push({
-          type: EAType.EAT_COMPONENT_REMOVED,
           tag: entityId,
           payload: {
-            componentRemoved: {
-              entityId,
-              name: componentName.replace(componentNameRE, '')
+            payload: {
+              $case: 'componentRemoved', componentRemoved: {
+                entityId,
+                name: componentName.replace(componentNameRE, '')
+              }
             }
           }
         })
@@ -177,12 +288,14 @@ export function createDecentralandInterface(options: DecentralandInterfaceOption
     /** set a new parent for the entity */
     setParent(entityId: string, parentId: string): void {
       batchEvents.events.push({
-        type: EAType.EAT_SET_ENTITY_PARENT,
         tag: entityId,
         payload: {
-          setEntityParent: {
-            entityId,
-            parentId
+          payload: {
+            $case: 'setEntityParent',
+            setEntityParent: {
+              entityId,
+              parentId
+            }
           }
         }
       })
@@ -192,12 +305,14 @@ export function createDecentralandInterface(options: DecentralandInterfaceOption
     query(queryType: any, payload: any) {
       payload.queryId = getIdAsNumber(payload.queryId).toString()
       batchEvents.events.push({
-        type: EAType.EAT_QUERY,
         tag: sceneId + '_' + payload.queryId,
         payload: {
-          query: {
-            queryId: queryTypeFromJSON(queryType),
-            payload: JSON.stringify(payload)
+          payload: {
+            $case: 'query',
+            query: {
+              queryId: queryType,
+              payload
+            }
           }
         }
       })
@@ -215,14 +330,16 @@ export function createDecentralandInterface(options: DecentralandInterfaceOption
 
     componentCreated(id: string, componentName: string, classId: number) {
       if (componentNameRE.test(componentName)) {
+        componentIdClassIdMap.set(id, classId)
         batchEvents.events.push({
-          type: EAType.EAT_COMPONENT_CREATED,
           tag: id,
           payload: {
-            componentCreated: {
-              id,
-              classId,
-              name: componentName.replace(componentNameRE, '')
+            payload: {
+              $case: 'componentCreated', componentCreated: {
+                id,
+                classId,
+                name: componentName.replace(componentNameRE, '')
+              }
             }
           }
         })
@@ -230,26 +347,30 @@ export function createDecentralandInterface(options: DecentralandInterfaceOption
     },
 
     componentDisposed(id: string) {
+      componentIdClassIdMap.delete(id)
       batchEvents.events.push({
-        type: EAType.EAT_COMPONENT_DISPOSED,
         tag: id,
         payload: {
-          componentDisposed: { id }
+          payload: { $case: 'componentDisposed', componentDisposed: { id } }
         }
       })
     },
 
     componentUpdated(id: string, json: string) {
-      batchEvents.events.push({
-        type: EAType.EAT_COMPONENT_UPDATED,
-        tag: id,
-        payload: {
-          componentUpdated: {
-            id,
-            json
+      const classId = componentIdClassIdMap.get(id)
+      if (classId) {
+        batchEvents.events.push({
+          tag: id,
+          payload: {
+            payload: {
+              $case: 'componentUpdated', componentUpdated: {
+                id,
+                componentData: getValue(classId, json, onLog)
+              }
+            }
           }
-        }
-      })
+        })
+      }
     },
 
     loadModule: async (_moduleName) => {
