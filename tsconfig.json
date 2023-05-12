@@ -22,8 +22,13 @@
     "pretty": true,
     "outDir": "dist",
     "skipLibCheck": true,
-    "lib": ["es2020", "webworker"],
+    "lib": [
+      "es2020",
+      "webworker"
+    ],
     "types": []
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }

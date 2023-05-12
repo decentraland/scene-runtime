@@ -1,18 +1,18 @@
 import { createRpcClient } from '@dcl/rpc'
 import { WebWorkerTransport } from '@dcl/rpc/dist/transports/WebWorker'
 
-import { LoadableApis } from './client'
-import { initMessagesFinished, numberToIdStore, resolveMapping } from '../common/Utils'
-import { customEval, prepareSandboxContext } from './runtime/sandbox'
-import { RpcClient } from '@dcl/rpc/dist/types'
 import { PermissionItem } from '@dcl/protocol/out-ts/decentraland/kernel/apis/permissions.gen'
+import { RpcClient } from '@dcl/rpc/dist/types'
+import { initMessagesFinished, numberToIdStore, resolveMapping } from '../common/Utils'
+import { LoadableApis } from './client'
+import { customEval, prepareSandboxContext } from './runtime/sandbox'
 
 import { createDecentralandInterface, DecentralandInterfaceOptions } from './runtime/DecentralandInterface'
 import { setupFpsThrottling } from './runtime/SetupFpsThrottling'
 
-import { DevToolsAdapter } from './runtime/DevToolsAdapter'
-import { RuntimeEventCallback, RuntimeEvent, SceneRuntimeEventState, EventDataToRuntimeEvent } from './runtime/Events'
 import type { Scene } from '@dcl/schemas/dist/platform/scene/index'
+import { DevToolsAdapter } from './runtime/DevToolsAdapter'
+import { EventDataToRuntimeEvent, RuntimeEvent, RuntimeEventCallback, SceneRuntimeEventState } from './runtime/Events'
 
 /**
  * Converts a string position "-1,5" => { x: -1, y: 5 }
@@ -53,8 +53,11 @@ export async function startSceneRuntime(client: RpcClient) {
 
   const bootstrapData = await EnvironmentApi.getBootstrapData({})
   const fullData: Scene = JSON.parse(bootstrapData.entity?.metadataJson || '{}')
-  const isPreview = await EnvironmentApi.isPreviewMode({})
-  const unsafeAllowed = await EnvironmentApi.areUnsafeRequestAllowed({})
+
+  const [isPreview, unsafeAllowed] = await Promise.all([
+    EnvironmentApi.isPreviewMode({}),
+    EnvironmentApi.areUnsafeRequestAllowed({})
+  ])
 
   if (!fullData || !fullData.main) {
     throw new Error(`No boostrap data`)
@@ -146,7 +149,7 @@ export async function startSceneRuntime(client: RpcClient) {
 
       for (const trigger of onUpdateFunctions) {
         try {
-          await trigger(dtSecs)
+          trigger(dtSecs)
         } catch (e: any) {
           devToolsAdapter.error(e)
         }

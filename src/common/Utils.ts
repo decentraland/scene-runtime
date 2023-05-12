@@ -1,4 +1,4 @@
-import { EAType } from "@dcl/protocol/out-ts/decentraland/kernel/apis/engine_api.gen"
+import { EntityAction } from "@dcl/protocol/out-ts/decentraland/sdk/ecs6/engine_interface_ecs6.gen"
 
 type Vector3 = Record<"x" | "y" | "z", number>
 type Quaternion = Record<"x" | "y" | "z" | "w", number>
@@ -121,10 +121,9 @@ export function getIdAsNumber(id: string): number {
   }
 }
 
-export function initMessagesFinished() {
+export function initMessagesFinished(): EntityAction {
   return {
-    type: EAType.EAT_INIT_MESSAGES_FINISHED,
     tag: "scene",
-    payload: { initMessagesFinished: {} },
+    payload: { payload: { $case: "initMessagesFinished", initMessagesFinished: {} } },
   }
 }
