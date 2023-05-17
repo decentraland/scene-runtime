@@ -26,12 +26,12 @@ export namespace RestrictedActionsServiceClient {
        * @param position PositionType
        * @param cameraTarget PositionType
        */
-      async movePlayerTo(newPosition: PositionType, cameraTarget?: PositionType): Promise<void> {
-        await originalService.movePlayerTo({
-          newRelativePosition: newPosition,
-          cameraTarget: cameraTarget || undefined
-        })
-      },
+      // async movePlayerTo(newPosition: PositionType, cameraTarget?: PositionType): Promise<void> {
+      //   await originalService.movePlayerTo({
+      //     newRelativePosition: newPosition,
+      //     cameraTarget: cameraTarget || undefined
+      //   })
+      // },
       /**
        * trigger an emote on the current player
        *
