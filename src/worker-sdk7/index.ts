@@ -1,5 +1,4 @@
 import { createRpcClient } from '@dcl/rpc'
-import { WebWorkerTransport } from '@dcl/rpc/dist/transports/WebWorker'
 
 import { LoadableApis } from './client'
 import { resolveMapping } from '../common/Utils'
@@ -10,6 +9,7 @@ import { DevToolsAdapter } from './client/DevToolsAdapter'
 import type { Scene } from '@dcl/schemas/dist/platform/scene/index'
 import { createModuleRuntime, createWsFetchRuntime } from './sdk7-runtime'
 import { customEvalSdk7 } from './sandbox'
+import { WebWorkerTransportV2 } from '../common/RpcTransportWebWorkerV2'
 
 export async function startSceneRuntime(client: RpcClient) {
   const workerName = self.name
@@ -135,6 +135,6 @@ async function sleep(ms: number): Promise<boolean> {
   return true
 }
 
-createRpcClient(WebWorkerTransport(self))
+createRpcClient(WebWorkerTransportV2(self))
   .then(startSceneRuntime)
   .catch((err) => console.error(err))

@@ -1,5 +1,4 @@
 import { createRpcClient } from '@dcl/rpc'
-import { WebWorkerTransport } from '@dcl/rpc/dist/transports/WebWorker'
 
 import { PermissionItem } from '@dcl/protocol/out-ts/decentraland/kernel/apis/permissions.gen'
 import { RpcClient } from '@dcl/rpc/dist/types'
@@ -10,7 +9,10 @@ import { customEval, prepareSandboxContext } from './runtime/sandbox'
 import { createDecentralandInterface, DecentralandInterfaceOptions } from './runtime/DecentralandInterface'
 import { setupFpsThrottling } from './runtime/SetupFpsThrottling'
 
+import { ManyEntityAction } from '@dcl/protocol/out-ts/decentraland/kernel/apis/engine_api.gen'
 import type { Scene } from '@dcl/schemas/dist/platform/scene/index'
+import { WebWorkerTransportV2 } from '../common/RpcTransportWebWorkerV2'
+
 import { DevToolsAdapter } from './runtime/DevToolsAdapter'
 import { EventDataToRuntimeEvent, RuntimeEvent, RuntimeEventCallback, SceneRuntimeEventState } from './runtime/Events'
 
@@ -91,7 +93,10 @@ export async function startSceneRuntime(client: RpcClient) {
       batchEvents.events = []
     }
 
-    const res = await EngineApi.sendBatch({ actions })
+    const bytes = ManyEntityAction.encode({actions}).finish()
+    globalThis.postMessage({ type: 'actions', bytes })
+
+    const res = await EngineApi.sendBatch({ actions: [] })
     for (const e of res.events) {
       await eventReceiver(EventDataToRuntimeEvent(e))
     }
@@ -236,6 +241,6 @@ async function sleep(ms: number): Promise<boolean> {
   return true
 }
 
-createRpcClient(WebWorkerTransport(self))
+createRpcClient(WebWorkerTransportV2(self))
   .then(startSceneRuntime)
   .catch((err) => console.error(err))
