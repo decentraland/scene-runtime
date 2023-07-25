@@ -16,6 +16,7 @@ import { EngineApiServiceDefinition } from '@dcl/protocol/out-ts/decentraland/ke
 import { PermissionsServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/permissions.gen'
 import { SceneServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/scene.gen'
 import { TestingServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/testing.gen'
+import { CommsApiServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/comms_api.gen'
 
 export const LoadableApis = {
   // TODO: Review final API before public launch
@@ -99,6 +100,9 @@ export const LoadableApis = {
   },
   Scene<Context extends {}>(clientPort: RpcClientPort) {
     return codegen.loadService<Context, SceneServiceDefinition>(clientPort, SceneServiceDefinition)
+  },
+  CommsApi<Context extends {}>(clientPort: RpcClientPort) {
+    return codegen.loadService<Context, CommsApiServiceDefinition>(clientPort, CommsApiServiceDefinition)
   },
 }
 
