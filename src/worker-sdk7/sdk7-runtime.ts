@@ -112,21 +112,13 @@ export function createModuleRuntime(
     },
     async runStart() {
       if (module.exports.onStart) {
-        try {
-          await module.exports.onStart()
-        } catch (err: any) {
-          await devtools.error(err)
-        }
+        await module.exports.onStart()
       }
       await runSetImmediate()
     },
     async runUpdate(deltaTime: number) {
       if (module.exports.onUpdate) {
-        try {
-          await module.exports.onUpdate(deltaTime)
-        } catch (err: any) {
-          await devtools.error(err)
-        }
+        await module.exports.onUpdate(deltaTime)
       }
       await runSetImmediate()
     }
