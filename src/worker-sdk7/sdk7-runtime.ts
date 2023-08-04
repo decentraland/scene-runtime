@@ -2,7 +2,6 @@ import type { RpcClientPort } from '@dcl/rpc'
 import { createFetch } from '../common/Fetch'
 import { createWebSocket } from '../common/WebSocket'
 import { LoadableApis } from './client'
-import { DevToolsAdapter } from './client/DevToolsAdapter'
 
 export type GenericRpcModule = Record<string, (...args: any) => Promise<unknown>>
 
@@ -17,15 +16,20 @@ export type SDK7Module = {
   runUpdate(deltaTime: number): Promise<void>
 }
 
+export type ConsoleType = {
+  log(...args: any[]): void
+  error(...args: any[]): void
+}
+
 export function createWsFetchRuntime(
   runtime: Record<string, any>,
   options: { canUseWebsocket: boolean; canUseFetch: boolean; previewMode: boolean },
-  devtools: DevToolsAdapter
+  console: ConsoleType
 ) {
   const originalFetch = globalThis.fetch
 
-  const restrictedWebSocket = createWebSocket({ ...options, log: devtools.log.bind(devtools) })
-  const restrictedFetch = createFetch({ ...options, originalFetch, log: devtools.log.bind(devtools) })
+  const restrictedWebSocket = createWebSocket({ ...options, log: console.log.bind(console) })
+  const restrictedFetch = createFetch({ ...options, originalFetch, log: console.log.bind(console) })
 
   Object.defineProperty(runtime, 'WebSocket', {
     configurable: false,
@@ -41,7 +45,7 @@ export function createWsFetchRuntime(
 export function createModuleRuntime(
   runtime: Record<string, any>,
   clientPort: RpcClientPort,
-  devtools: DevToolsAdapter
+  console: ConsoleType
 ): SDK7Module {
   const exports: Partial<SceneInterface> = {}
 
@@ -63,12 +67,12 @@ export function createModuleRuntime(
 
   Object.defineProperty(runtime, 'console', {
     value: {
-      log: devtools.log.bind(devtools),
-      info: devtools.log.bind(devtools),
-      debug: devtools.log.bind(devtools),
-      trace: devtools.log.bind(devtools),
-      warning: devtools.error.bind(devtools),
-      error: devtools.error.bind(devtools)
+      log: console.log.bind(console),
+      info: console.log.bind(console),
+      debug: console.log.bind(console),
+      trace: console.log.bind(console),
+      warning: console.error.bind(console),
+      error: console.error.bind(console)
     }
   })
 
@@ -99,7 +103,7 @@ export function createModuleRuntime(
         try {
           await fn()
         } catch (err: any) {
-          devtools.error(err)
+          console.error(err)
         }
       }
       setImmediateList.length = 0
@@ -115,7 +119,7 @@ export function createModuleRuntime(
         try {
           await module.exports.onStart()
         } catch (err: any) {
-          await devtools.error(err)
+          console.error(err)
         }
       }
       await runSetImmediate()
@@ -125,7 +129,7 @@ export function createModuleRuntime(
         try {
           await module.exports.onUpdate(deltaTime)
         } catch (err: any) {
-          await devtools.error(err)
+          console.error(err)
         }
       }
       await runSetImmediate()

@@ -1,5 +1,4 @@
 import { allowListES2020, customEvalSdk7, runWithScope } from '../src/worker-sdk7/sandbox'
-import { DevToolsAdapter } from '../src/worker-sdk7/client/DevToolsAdapter'
 import { createModuleRuntime } from '../src/worker-sdk7/sdk7-runtime'
 import { namesExistQuickJs } from './get-es2020-context'
 
@@ -78,12 +77,10 @@ describe('Sandbox', () => {
     `.trim()
 
     {
-      const event = jest.fn()
       const log = jest.fn()
-      const devToolsAdapter = new DevToolsAdapter({ event })
       const context = Object.create(null)
       context.log = log
-      const sceneModule = createModuleRuntime(context, null as any, devToolsAdapter)
+      const sceneModule = createModuleRuntime(context, null as any, console)
 
       await customEvalSdk7(src, context, false)
 
@@ -364,10 +361,8 @@ export function checkExistence(property: string, exists: boolean) {
 
 describe('dcl runtime', () => {
   it(`onUpdate works`, async () => {
-    const event = jest.fn()
-    const devToolsAdapter = new DevToolsAdapter({ event })
     const context = Object.create(null)
-    const sceneModule = createModuleRuntime(context, null as any, devToolsAdapter)
+    const sceneModule = createModuleRuntime(context, null as any, console)
 
     // run the code of the scene
     await customEvalSdk7('exports.onUpdate = function() { return 123 }', context, false)
@@ -376,10 +371,8 @@ describe('dcl runtime', () => {
   })
 
   it(`setImmediate exists`, async () => {
-    const event = jest.fn()
-    const devToolsAdapter = new DevToolsAdapter({ event })
     const context = Object.create(null)
-    const sceneModule = createModuleRuntime(context, null as any, devToolsAdapter)
+    const sceneModule = createModuleRuntime(context, null as any, console)
 
     // run the code of the scene
     await customEvalSdk7('exports.onUpdate = function() { return typeof setImmediate }', context, false)
@@ -388,11 +381,9 @@ describe('dcl runtime', () => {
   })
 
   it(`setImmediate is called once, onStart works`, async () => {
-    const event = jest.fn()
-    const devToolsAdapter = new DevToolsAdapter({ event })
     const fn = jest.fn()
     const context = Object.create({ fn })
-    const sceneModule = createModuleRuntime(context, null as any, devToolsAdapter)
+    const sceneModule = createModuleRuntime(context, null as any, console)
 
     await customEvalSdk7('setImmediate(fn)', context, false)
 
@@ -410,10 +401,8 @@ describe('dcl runtime', () => {
   })
 
   it(`scoped setImmediate is the same as globalThis.setImmediate`, async () => {
-    const event = jest.fn()
-    const devToolsAdapter = new DevToolsAdapter({ event })
     const context = Object.create(null)
-    const sceneModule = createModuleRuntime(context, null as any, devToolsAdapter)
+    const sceneModule = createModuleRuntime(context, null as any, console)
 
     await customEvalSdk7('exports.onStart = function() { if(setImmediate !== globalThis.setImmediate) throw new Error("they are different") }', context, false)
     await sceneModule.exports.onStart!()
