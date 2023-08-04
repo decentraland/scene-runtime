@@ -1,4 +1,4 @@
-import { allowListES2020, customEvalSdk7, runWithScope } from '../src/worker-sdk7/sandbox'
+import { allowListES2020, customEvalSdk7 } from '../src/worker-sdk7/sandbox'
 import { DevToolsAdapter } from '../src/worker-sdk7/client/DevToolsAdapter'
 import { createModuleRuntime } from '../src/worker-sdk7/sdk7-runtime'
 import { namesExistQuickJs } from './get-es2020-context'
@@ -30,7 +30,7 @@ describe('Sandbox', () => {
       throw new Error('1')
     })
 
-    await expect(() => customEvalSdk7(example, { console: { log } }, false)).rejects.toThrow('1')
+    await expect(() => customEvalSdk7(example, { console: { log } })).rejects.toThrow('1')
     expect(log).toBeCalled()
   })
 
@@ -38,7 +38,7 @@ describe('Sandbox', () => {
     let stack = 'null'
 
     try {
-      await customEvalSdk7(exampleFailingWithStack, {}, true)
+      await customEvalSdk7(exampleFailingWithStack, {})
     } catch (err: any) {
       stack = err.stack
     }
@@ -74,7 +74,7 @@ describe('Sandbox', () => {
 
     var dt = 0;
     var onUpdate = () => { log(++dt) };
-    
+
     `.trim()
 
     {
@@ -85,7 +85,7 @@ describe('Sandbox', () => {
       context.log = log
       const sceneModule = createModuleRuntime(context, null as any, devToolsAdapter)
 
-      await customEvalSdk7(src, context, false)
+      await customEvalSdk7(src, context)
 
       await sceneModule.exports.onUpdate!(0.0)
       expect(log).toBeCalledWith(1) // evaluate new result
@@ -94,93 +94,10 @@ describe('Sandbox', () => {
     }
   })
 
-
-  it('runWithScope returns values consistently', async () => {
-    const symbol = Symbol('123')
-    expect(await runWithScope('return symbol', { symbol })).toEqual(symbol)
-  })
-
-  it('runWithScope returns values consistently shadowing names', async () => {
-    const console = Symbol('123')
-    expect(await runWithScope('return console', { console })).toEqual(console)
-    expect(await runWithScope('return test', { test })).toEqual(test)
-  })
-
-  it('runWithScope properly proxies functions for testing', async () => {
-    const fn = jest.fn().mockReturnValue(3)
-    expect(await runWithScope('return fn()', { fn })).toEqual(3)
-  })
-
-  it('runWithScope properly proxies functions for testing in objects', async () => {
-    const fn = jest.fn().mockReturnValue(3)
-    expect(await runWithScope('return obj.fn()', { obj: { fn } })).toEqual(3)
-  })
-
-  it('runWithScope properly proxies functions for testing in objects with shadowing', async () => {
-    const log = jest.fn().mockReturnValue(3)
-    expect(await runWithScope('return console.log()', { console: { log } })).toEqual(3)
-  })
-
-  it('runWithScope works with define value property', async () => {
-    const log = jest.fn().mockReturnValue(3)
-
-    const context = {}
-    Object.defineProperty(context, 'console', {
-      configurable: false,
-      value: { log }
-    })
-
-    expect(await runWithScope('return console.log()', context)).toEqual(3)
-  })
-
-  it('runWithScope works with define getter property', async () => {
-    const log = jest.fn().mockReturnValue(3)
-
-    const context = {}
-    Object.defineProperty(context, 'console', {
-      configurable: false,
-      get() {
-        return { log }
-      }
-    })
-
-    expect(await runWithScope('return console.log()', context)).toEqual(3)
-  })
-
-  it('runWithScope should fail upon unknown function with shadowing', async () => {
-    await expect(runWithScope('return console.log()', {})).rejects.toThrow(
-      "Cannot read properties of undefined (reading 'log')"
-    )
-  })
-
-  it('runWithScope this should be Proxy', async () => {
-    const that: any = await runWithScope('return this', {})
-    expect(that).toMatchObject({})
-    expect(that.console).toEqual(undefined)
-    expect(that.eval).toEqual(eval)
-  })
-
-  it('runWithScope globalThis should be Proxy', async () => {
-    const that: any = await runWithScope('return globalThis', {})
-    expect(that).toMatchObject({})
-    expect(that.console).toEqual(undefined)
-    expect(that.eval).toEqual(eval)
-  })
-
-  it('runWithScope globalThis.test==1', async () => {
-    const that: any = await runWithScope('return globalThis.test', { test: 1 })
-    expect(that).toEqual(1)
-  })
-
-  it('runWithScope this.test==1', async () => {
-    const that: any = await runWithScope('return this.test', { test: 1 })
-    expect(that).toEqual(1)
-  })
-
   it('this should be the proxy', async () => {
     const log = jest.fn().mockImplementation((x) => { })
 
-    await customEvalSdk7(example, { console: { log } }, false)
+    await customEvalSdk7(example, { console: { log } })
 
     expect(log).toBeCalledTimes(1)
   })
@@ -188,7 +105,7 @@ describe('Sandbox', () => {
   it('this should be the proxy (eval)', async () => {
     const log = jest.fn().mockImplementation((x) => { })
 
-    await customEvalSdk7(example, { console: { log } }, false)
+    await customEvalSdk7(example, { console: { log } })
 
     expect(log).toBeCalledTimes(1)
   })
@@ -199,7 +116,7 @@ describe('Sandbox', () => {
       that = $
     })
 
-    await customEvalSdk7(`console.log(globalThis)`, { console: { log } }, false)
+    await customEvalSdk7(`console.log(globalThis)`, { console: { log } })
 
     expect(log).toBeCalledTimes(1)
     expect(that.console).toHaveProperty('log')
@@ -222,9 +139,9 @@ describe('Sandbox', () => {
           }
         }
       })
-      await customEvalSdk7('console.log()', context, true)
+      await customEvalSdk7('console.log()', context)
       expect(i).toEqual(1)
-      await customEvalSdk7('console.log()', context, false)
+      await customEvalSdk7('console.log()', context)
       expect(i).toEqual(2)
     })
 
@@ -241,9 +158,9 @@ describe('Sandbox', () => {
           }
         }
       })
-      await customEvalSdk7('console.log()', context, true)
+      await customEvalSdk7('console.log()', context)
       expect(i).toEqual(1)
-      await customEvalSdk7('console.log()', context, false)
+      await customEvalSdk7('console.log()', context)
       expect(i).toEqual(2)
     })
   })
@@ -270,7 +187,7 @@ export function checkExistence(property: string, exists: boolean) {
       that = $
     })
 
-    await customEvalSdk7(`x(globalThis.${property})`, { x }, true)
+    await customEvalSdk7(`x(globalThis.${property})`, { x })
 
     expect(x).toBeCalledTimes(1)
 
@@ -287,7 +204,7 @@ export function checkExistence(property: string, exists: boolean) {
       that = $
     })
 
-    await customEvalSdk7(`x(globalThis.${property})`, { x }, false)
+    await customEvalSdk7(`x(globalThis.${property})`, { x })
 
     expect(x).toBeCalledTimes(1)
 
@@ -304,7 +221,7 @@ export function checkExistence(property: string, exists: boolean) {
       that = $
     })
 
-    await customEvalSdk7(`x(this.${property})`, { x }, true)
+    await customEvalSdk7(`x(this.${property})`, { x })
 
     expect(x).toBeCalledTimes(1)
 
@@ -321,7 +238,7 @@ export function checkExistence(property: string, exists: boolean) {
       that = $
     })
 
-    await customEvalSdk7(`x(this.${property})`, { x }, false)
+    await customEvalSdk7(`x(this.${property})`, { x })
 
     expect(x).toBeCalledTimes(1)
 
@@ -338,7 +255,7 @@ export function checkExistence(property: string, exists: boolean) {
       that = $
     })
 
-    await customEvalSdk7(`x(${property})`, { x }, true)
+    await customEvalSdk7(`x(${property})`, { x })
 
     expect(x).toBeCalledTimes(1)
     if (exists) {
@@ -354,7 +271,7 @@ export function checkExistence(property: string, exists: boolean) {
       that = $
     })
 
-    await customEvalSdk7(`x(${property})`, { x }, false)
+    await customEvalSdk7(`x(${property})`, { x })
 
     expect(x).toBeCalledTimes(1)
     if (exists) expect(that).not.toStrictEqual(undefined)
@@ -370,7 +287,7 @@ describe('dcl runtime', () => {
     const sceneModule = createModuleRuntime(context, null as any, devToolsAdapter)
 
     // run the code of the scene
-    await customEvalSdk7('exports.onUpdate = function() { return 123 }', context, false)
+    await customEvalSdk7('exports.onUpdate = function() { return 123 }', context)
 
     expect(await sceneModule.exports.onUpdate!(0)).toEqual(123)
   })
@@ -382,7 +299,7 @@ describe('dcl runtime', () => {
     const sceneModule = createModuleRuntime(context, null as any, devToolsAdapter)
 
     // run the code of the scene
-    await customEvalSdk7('exports.onUpdate = function() { return typeof setImmediate }', context, false)
+    await customEvalSdk7('exports.onUpdate = function() { return typeof setImmediate }', context)
 
     expect(await sceneModule.exports.onUpdate!(0)).toEqual('function')
   })
@@ -394,7 +311,7 @@ describe('dcl runtime', () => {
     const context = Object.create({ fn })
     const sceneModule = createModuleRuntime(context, null as any, devToolsAdapter)
 
-    await customEvalSdk7('setImmediate(fn)', context, false)
+    await customEvalSdk7('setImmediate(fn)', context)
 
     expect(fn).not.toHaveBeenCalled()
     await sceneModule.runStart!()
@@ -415,7 +332,7 @@ describe('dcl runtime', () => {
     const context = Object.create(null)
     const sceneModule = createModuleRuntime(context, null as any, devToolsAdapter)
 
-    await customEvalSdk7('exports.onStart = function() { if(setImmediate !== globalThis.setImmediate) throw new Error("they are different") }', context, false)
+    await customEvalSdk7('exports.onStart = function() { if(setImmediate !== globalThis.setImmediate) throw new Error("they are different") }', context)
     await sceneModule.exports.onStart!()
   })
 })
