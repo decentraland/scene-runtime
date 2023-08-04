@@ -38,10 +38,13 @@ export async function startSceneRuntime(client: RpcClient) {
     await run()
   } catch (err) {
     // TODO: await EngineApi.sendBatch({ actions: [initMessagesFinished()] })
-
-    await devToolsAdapter.error(err as any)
-    clientPort.close()
-    return
+    if (isPreview.isPreview) {
+      clientPort.close()
+      throw err
+    } else {
+      await devToolsAdapter.error(err as Error)
+      clientPort.close()
+    }
   }
 
   async function getSceneSource() {
@@ -91,7 +94,7 @@ export async function startSceneRuntime(client: RpcClient) {
     const sceneModule = createModuleRuntime(runtimeExecutionContext, clientPort, devToolsAdapter)
 
     // run the code of the scene
-    await customEvalSdk7(sourceCode, runtimeExecutionContext, isPreview.isPreview)
+    await customEvalSdk7(sourceCode, runtimeExecutionContext)
 
     if (!sceneModule.exports.onUpdate && !sceneModule.exports.onStart) {
       // there may be cases where onStart is present and onUpdate not for "static-ish" scenes
@@ -135,6 +138,4 @@ async function sleep(ms: number): Promise<boolean> {
   return true
 }
 
-createRpcClient(WebWorkerTransportV2(self))
-  .then(startSceneRuntime)
-  .catch((err) => console.error(err))
+createRpcClient(WebWorkerTransportV2(self)).then(startSceneRuntime)

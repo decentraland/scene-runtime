@@ -62,7 +62,7 @@ export const allowListES2020: Array<keyof typeof globalThis> = [
 // eslint-disable-next-line @typescript-eslint/ban-types
 const defer: (fn: Function) => void = (Promise.resolve().then as any).bind(Promise.resolve() as any)
 
-export async function runWithScope(code: string, context: any) {
+export async function customEvalSdk7(code: string, context: Record<string | symbol, unknown>) {
   const func = new Function('globalThis', `with (globalThis) {${code}}`)
   const proxy: any = new Proxy(context, {
     has() {
@@ -82,12 +82,6 @@ export async function runWithScope(code: string, context: any) {
   })
 
   return defer(() => func.call(proxy, proxy))
-}
-
-export async function customEvalSdk7(code: string, context: any, devtool: boolean) {
-  const newCode = devtool ? `eval(${JSON.stringify(code)})` : code
-
-  return runWithScope(newCode, context)
 }
 
 
