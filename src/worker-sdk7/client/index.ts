@@ -17,6 +17,7 @@ import { PermissionsServiceDefinition } from '@dcl/protocol/out-ts/decentraland/
 import { SceneServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/scene.gen'
 import { TestingServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/testing.gen'
 import { CommsApiServiceDefinition } from '@dcl/protocol/out-ts/decentraland/kernel/apis/comms_api.gen'
+import { } from '@dcl/protocol/out-ts/decentraland/kernel/apis/social_api.gen'
 
 export const LoadableApis = {
   // TODO: Review final API before public launch
