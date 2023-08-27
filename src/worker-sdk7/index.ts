@@ -53,7 +53,7 @@ export async function startSceneRuntime(client: RpcClient) {
     }
 
     // Inject SDK7 Adaption Layer
-    const isSdk7 = fullData.runtimeVersion === '7'
+    const isSdk7 = (fullData as any).runtimeVersion === '7'
     if (!isSdk7) {
       const request = await fetch(`https://renderer-artifacts.decentraland.org/sdk7-adaption-layer/main/index.js`)
       return request.text()
