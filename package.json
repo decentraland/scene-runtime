@@ -18,7 +18,7 @@
   "homepage": "https://github.com/decentraland/scene-runtime#readme",
   "devDependencies": {
     "@dcl/posix": "^1.0.4",
-    "@dcl/protocol": "https://sdk-team-cdn.decentraland.org/@dcl/protocol/branch//dcl-protocol-1.0.0-5966094889.commit-64d09f3.tgz",
+    "@dcl/protocol": "1.0.0-6200210039.commit-75f18e8",
     "@dcl/quickjs-emscripten": "^0.21.0-3678929406.commit-ea3d5d7",
     "@dcl/rpc": "^1.1.2",
     "@dcl/schemas": "^6.15.0",
