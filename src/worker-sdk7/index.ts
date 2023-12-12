@@ -52,6 +52,13 @@ export async function startSceneRuntime(client: RpcClient) {
       throw new Error(`No boostrap data`)
     }
 
+    // Inject SDK7 Adaption Layer
+    const isSdk7 = (fullData as any).runtimeVersion === '7'
+    if (!isSdk7) {
+      const request = await fetch(`https://renderer-artifacts.decentraland.org/sdk7-adaption-layer/main/index.js`)
+      return request.text()
+    }
+
     const mappingName = fullData.main
     const mapping = bootstrapData.entity?.content.find(($) => $.file === mappingName)
 
