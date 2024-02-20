@@ -118,7 +118,11 @@ export function createModuleRuntime(
     },
     async runUpdate(deltaTime: number) {
       if (module.exports.onUpdate) {
-        await module.exports.onUpdate(deltaTime)
+        try {
+          await module.exports.onUpdate(deltaTime)
+        } catch (e: any) {
+          devtools.error(e)
+        }
       }
       await runSetImmediate()
     }

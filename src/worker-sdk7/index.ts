@@ -138,4 +138,4 @@ async function sleep(ms: number): Promise<boolean> {
   return true
 }
 
-createRpcClient(WebWorkerTransportV2(self)).then(startSceneRuntime)
+createRpcClient(WebWorkerTransportV2(self)).then(startSceneRuntime).catch(console.error)
