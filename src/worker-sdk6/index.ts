@@ -15,6 +15,7 @@ import { WebWorkerTransportV2 } from '../common/RpcTransportWebWorkerV2'
 
 import { DevToolsAdapter } from './runtime/DevToolsAdapter'
 import { EventDataToRuntimeEvent, RuntimeEvent, RuntimeEventCallback, SceneRuntimeEventState } from './runtime/Events'
+import { parseActions } from './observer'
 
 /**
  * Converts a string position "-1,5" => { x: -1, y: 5 }
@@ -92,6 +93,8 @@ export async function startSceneRuntime(client: RpcClient) {
     if (actions.length) {
       batchEvents.events = []
     }
+
+    parseActions(actions)
 
     const bytes = ManyEntityAction.encode({actions}).finish()
     globalThis.postMessage({ type: 'actions', bytes })
