@@ -30,7 +30,7 @@ describe('Sandbox', () => {
       throw new Error('1')
     })
 
-    await expect(() => customEvalSdk7(example, { console: { log } })).rejects.toThrow('1')
+    await expect(() => customEvalSdk7(example, { console: { log } }, false)).rejects.toThrow('1')
     expect(log).toBeCalled()
   })
 
@@ -38,7 +38,7 @@ describe('Sandbox', () => {
     let stack = 'null'
 
     try {
-      await customEvalSdk7(exampleFailingWithStack, {})
+      await customEvalSdk7(exampleFailingWithStack, {}, false)
     } catch (err: any) {
       stack = err.stack
     }
@@ -85,7 +85,7 @@ describe('Sandbox', () => {
       context.log = log
       const sceneModule = createModuleRuntime(context, null as any, devToolsAdapter)
 
-      await customEvalSdk7(src, context)
+      await customEvalSdk7(src, context, false)
 
       await sceneModule.exports.onUpdate!(0.0)
       expect(log).toBeCalledWith(1) // evaluate new result
@@ -97,7 +97,7 @@ describe('Sandbox', () => {
   it('this should be the proxy', async () => {
     const log = jest.fn().mockImplementation((x) => { })
 
-    await customEvalSdk7(example, { console: { log } })
+    await customEvalSdk7(example, { console: { log } }, false)
 
     expect(log).toBeCalledTimes(1)
   })
@@ -105,7 +105,7 @@ describe('Sandbox', () => {
   it('this should be the proxy (eval)', async () => {
     const log = jest.fn().mockImplementation((x) => { })
 
-    await customEvalSdk7(example, { console: { log } })
+    await customEvalSdk7(example, { console: { log } }, false)
 
     expect(log).toBeCalledTimes(1)
   })
@@ -116,7 +116,7 @@ describe('Sandbox', () => {
       that = $
     })
 
-    await customEvalSdk7(`console.log(globalThis)`, { console: { log } })
+    await customEvalSdk7(`console.log(globalThis)`, { console: { log } }, false)
 
     expect(log).toBeCalledTimes(1)
     expect(that.console).toHaveProperty('log')
@@ -139,9 +139,9 @@ describe('Sandbox', () => {
           }
         }
       })
-      await customEvalSdk7('console.log()', context)
+      await customEvalSdk7('console.log()', context, false)
       expect(i).toEqual(1)
-      await customEvalSdk7('console.log()', context)
+      await customEvalSdk7('console.log()', context, false)
       expect(i).toEqual(2)
     })
 
@@ -158,9 +158,9 @@ describe('Sandbox', () => {
           }
         }
       })
-      await customEvalSdk7('console.log()', context)
+      await customEvalSdk7('console.log()', context, false)
       expect(i).toEqual(1)
-      await customEvalSdk7('console.log()', context)
+      await customEvalSdk7('console.log()', context, false)
       expect(i).toEqual(2)
     })
   })
@@ -187,7 +187,7 @@ export function checkExistence(property: string, exists: boolean) {
       that = $
     })
 
-    await customEvalSdk7(`x(globalThis.${property})`, { x })
+    await customEvalSdk7(`x(globalThis.${property})`, { x }, false)
 
     expect(x).toBeCalledTimes(1)
 
@@ -204,7 +204,7 @@ export function checkExistence(property: string, exists: boolean) {
       that = $
     })
 
-    await customEvalSdk7(`x(globalThis.${property})`, { x })
+    await customEvalSdk7(`x(globalThis.${property})`, { x }, false)
 
     expect(x).toBeCalledTimes(1)
 
@@ -221,7 +221,7 @@ export function checkExistence(property: string, exists: boolean) {
       that = $
     })
 
-    await customEvalSdk7(`x(this.${property})`, { x })
+    await customEvalSdk7(`x(this.${property})`, { x }, false)
 
     expect(x).toBeCalledTimes(1)
 
@@ -238,7 +238,7 @@ export function checkExistence(property: string, exists: boolean) {
       that = $
     })
 
-    await customEvalSdk7(`x(this.${property})`, { x })
+    await customEvalSdk7(`x(this.${property})`, { x }, false)
 
     expect(x).toBeCalledTimes(1)
 
@@ -255,7 +255,7 @@ export function checkExistence(property: string, exists: boolean) {
       that = $
     })
 
-    await customEvalSdk7(`x(${property})`, { x })
+    await customEvalSdk7(`x(${property})`, { x }, false)
 
     expect(x).toBeCalledTimes(1)
     if (exists) {
@@ -271,7 +271,7 @@ export function checkExistence(property: string, exists: boolean) {
       that = $
     })
 
-    await customEvalSdk7(`x(${property})`, { x })
+    await customEvalSdk7(`x(${property})`, { x }, false)
 
     expect(x).toBeCalledTimes(1)
     if (exists) expect(that).not.toStrictEqual(undefined)
@@ -287,7 +287,7 @@ describe('dcl runtime', () => {
     const sceneModule = createModuleRuntime(context, null as any, devToolsAdapter)
 
     // run the code of the scene
-    await customEvalSdk7('exports.onUpdate = function() { return 123 }', context)
+    await customEvalSdk7('exports.onUpdate = function() { return 123 }', context, false)
 
     expect(await sceneModule.exports.onUpdate!(0)).toEqual(123)
   })
@@ -299,7 +299,7 @@ describe('dcl runtime', () => {
     const sceneModule = createModuleRuntime(context, null as any, devToolsAdapter)
 
     // run the code of the scene
-    await customEvalSdk7('exports.onUpdate = function() { return typeof setImmediate }', context)
+    await customEvalSdk7('exports.onUpdate = function() { return typeof setImmediate }', context, false)
 
     expect(await sceneModule.exports.onUpdate!(0)).toEqual('function')
   })
@@ -311,7 +311,7 @@ describe('dcl runtime', () => {
     const context = Object.create({ fn })
     const sceneModule = createModuleRuntime(context, null as any, devToolsAdapter)
 
-    await customEvalSdk7('setImmediate(fn)', context)
+    await customEvalSdk7('setImmediate(fn)', context, false)
 
     expect(fn).not.toHaveBeenCalled()
     await sceneModule.runStart!()
@@ -332,7 +332,7 @@ describe('dcl runtime', () => {
     const context = Object.create(null)
     const sceneModule = createModuleRuntime(context, null as any, devToolsAdapter)
 
-    await customEvalSdk7('exports.onStart = function() { if(setImmediate !== globalThis.setImmediate) throw new Error("they are different") }', context)
+    await customEvalSdk7('exports.onStart = function() { if(setImmediate !== globalThis.setImmediate) throw new Error("they are different") }', context, false)
     await sceneModule.exports.onStart!()
   })
 })
