@@ -40,7 +40,7 @@ const allowListES5: Array<keyof typeof globalThis> = [
 // eslint-disable-next-line @typescript-eslint/ban-types
 const defer: (fn: Function) => void = (Promise.resolve().then as any).bind(Promise.resolve() as any)
 
-export async function customEval(code: string, context: any) {
+export async function customEval(code: string, context: any, previewMode: boolean) {
   const sandbox: any = {}
 
   const resultKey = 'SAFE_EVAL_' + Math.floor(Math.random() * 1000000)
@@ -53,7 +53,7 @@ export async function customEval(code: string, context: any) {
   sandbox.window = sandbox
   sandbox.self = sandbox
 
-  return defer(() => new Function('code', `with (this) { ${code} }`).call(sandbox, code))
+  return defer(() => new Function('code', previewMode ? `with (this) { ${code} }` : `with (this) { eval(${JSON.stringify(code)}) }`).call(sandbox, code))
 }
 
 function getES5Context(base: Record<string, any>) {

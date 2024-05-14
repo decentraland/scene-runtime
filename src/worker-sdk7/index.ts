@@ -94,7 +94,7 @@ export async function startSceneRuntime(client: RpcClient) {
     const sceneModule = createModuleRuntime(runtimeExecutionContext, clientPort, devToolsAdapter)
 
     // run the code of the scene
-    await customEvalSdk7(sourceCode, runtimeExecutionContext)
+    await customEvalSdk7(sourceCode, runtimeExecutionContext, isPreview.isPreview)
 
     if (!sceneModule.exports.onUpdate && !sceneModule.exports.onStart) {
       // there may be cases where onStart is present and onUpdate not for "static-ish" scenes

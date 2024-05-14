@@ -62,8 +62,8 @@ export const allowListES2020: Array<keyof typeof globalThis> = [
 // eslint-disable-next-line @typescript-eslint/ban-types
 const defer: (fn: Function) => void = (Promise.resolve().then as any).bind(Promise.resolve() as any)
 
-export async function customEvalSdk7(code: string, context: Record<string | symbol, unknown>) {
-  const func = new Function('globalThis', `with (globalThis) {${code}}`)
+export async function customEvalSdk7(code: string, context: Record<string | symbol, unknown>, previewMode: boolean) {
+  const func = new Function('globalThis', previewMode ? `with (globalThis) {eval(${JSON.stringify(code)})}`: `with (globalThis) {${code}}`)
   const proxy: any = new Proxy(context, {
     has() {
       return true
