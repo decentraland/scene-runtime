@@ -202,7 +202,7 @@ export async function startSceneRuntime(client: RpcClient) {
     const sourceCode = await codeRequest.text()
 
     // run the code of the scene
-    await customEval(sourceCode, runtimeExecutionContext)
+    await customEval(sourceCode, runtimeExecutionContext, isPreview.isPreview)
   } catch (err) {
     await EngineApi.sendBatch({ actions: [initMessagesFinished()] })
 
